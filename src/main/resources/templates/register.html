@@ -5,14 +5,13 @@
     <title>Login</title>
 </head>
 <body>
-<h2>Login</h2>
-
-<div th:if="${param.error}">
-    <p th:text="${param.error}"></p>
-</div>
 
 
-<form th:action="@{/login}" method="post">
+<h2>Register form</h2>
+
+
+
+<form th:action="@{/register}" method="post">
     <div>
         <label for="username">email:</label>
         <input type="text" id="username" name="email" required>
@@ -25,10 +24,6 @@
         <button type="submit">Sign in</button>
     </div>wtf
 
-
-    <div th:if="${param.logout}">
-        You have been logged out.
-    </div>
 </form>
 
 </body>

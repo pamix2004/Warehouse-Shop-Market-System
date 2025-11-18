@@ -7,6 +7,15 @@
 </head>
 <body>
 
+
+
+<div th:if="${mailSent}">
+    Email sent!
+</div>
+<div th:if="${userAlreadyActive}">
+    User was already active
+</div>
+
 <h1>
     This is the homepage
 </h1>

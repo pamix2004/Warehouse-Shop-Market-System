@@ -12,6 +12,7 @@ public class User {
 
     private String email;
     private String password;
+    private boolean is_active;
 
     // ===== Getters and Setters =====
     public int getId() {
@@ -38,6 +39,15 @@ public class User {
         this.password = password;
     }
 
+    public boolean isActive() {
+        return is_active;
+    }
+    public void setIs_active(boolean is_active) {
+        this.is_active = is_active;
+    }
+
+
+
     // ===== toString() =====
     @Override
     public String toString() {
@@ -45,6 +55,7 @@ public class User {
                 "id=" + id +
                 ", email='" + email + '\'' +
                 ", password='" + password + '\'' +
+                ", is_active='" + is_active + '\'' +
                 '}';
     }
 }
