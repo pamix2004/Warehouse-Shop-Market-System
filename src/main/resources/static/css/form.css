@@ -1,0 +1,74 @@
+/* 1. Reset & Full Height Setup */
+* {
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    background-color: #f5f7fa; /* Light background for contrast */
+}
+
+/*
+   2. Vertical Centering Layout
+   This makes the body act like a column.
+   The Navbar stays at the top, the 'main-wrapper' fills the rest.
+*/
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+.main-wrapper {
+    flex: 1; /* Fills remaining vertical space */
+    display: flex;
+    justify-content: center; /* Horizontal Center */
+    align-items: center;     /* Vertical Center */
+    padding: 1rem;           /* Padding prevents card touching phone edges */
+}
+
+/*
+   3. The "PC vs Phone" Logic
+   - width: 100% -> Ensures it fills the screen on small phones.
+   - max-width: 400px -> Stops it from getting huge on PC screens.
+*/
+.login-card {
+    width: 100%;
+    max-width: 400px;
+    background: white;
+    border-radius: 0.5rem;
+}
+
+/*
+   4. REM Font Sizing for Responsiveness
+   1rem is usually 16px. Using rem helps with accessibility settings.
+*/
+
+/* Header */
+h3 {
+    font-size: 1.75rem; /* ~28px */
+    font-weight: 600;
+    color: #333;
+}
+
+/* Labels */
+.form-label {
+    font-size: 0.95rem; /* ~15px */
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+/* Inputs */
+.form-control {
+    font-size: 1rem;     /* ~16px (Prevents iOS zoom on focus) */
+    padding: 0.75rem;    /* Bigger click area for phone fingers */
+}
+
+/* Button */
+.btn-primary {
+    font-size: 1.1rem;   /* ~17.6px */
+    padding: 0.6rem;
+    font-weight: 500;
+}

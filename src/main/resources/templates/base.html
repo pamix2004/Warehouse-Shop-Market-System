@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Base Layout</title>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-light bg-light"
+     th:fragment="navbar"
+     style="
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        z-index: 1030;
+        background-color: #f0f0f0 !important;
+     ">
+
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#" style="font-weight: bold; color: black !important;">MySite</a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
+                aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link" href="#" style="color: black !important;">Oferta</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" style="color: black !important;">Dostawcy</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" style="color: black !important;">Koszyk</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" style="color: black !important;">Historia</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" style="color: black !important;">O nas</a>
+                </li>
+
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
+                       data-bs-toggle="dropdown" aria-expanded="false" style="color: black !important;">
+                        Pomoc
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                        <li><a class="dropdown-item" href="#">Action</a></li>
+                        <li><a class="dropdown-item" href="#">Another action</a></li>
+                        <li><a class="dropdown-item" href="#">Something else</a></li>
+                    </ul>
+                </li>
+            </ul>
+
+            <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-center">
+
+                <li class="nav-item" th:if="${#authorization.expression('isAuthenticated()')}">
+                    <a class="nav-link" href="/account" style="color: black !important;">Konto</a>
+                </li>
+
+                <li class="nav-item" th:if="${#authorization.expression('isAuthenticated()')}">
+                    <a class="nav-link" href="#" style="color: black !important;"
+                       onclick="event.preventDefault(); document.getElementById('logout-form-nav').submit();">
+                        Wyloguj
+                    </a>
+                    <form id="logout-form-nav" th:action="@{/logout}" method="post" style="display:none;">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                    </form>
+                </li>
+
+                <li class="nav-item" th:unless="${#authorization.expression('isAuthenticated()')}">
+                    <a class="nav-link" href="/login" style="color: black !important;">Logowanie</a>
+                </li>
+
+                <li class="nav-item" th:unless="${#authorization.expression('isAuthenticated()')}">
+                    <a class="nav-link" href="/register" style="color: black !important;">Register</a>
+                </li>
+
+                <li class="nav-item">
+                    <form class="d-flex ms-lg-3">
+                        <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" style="width: 150px;">
+                        <button class="btn btn-outline-dark" type="submit">Search</button>
+                    </form>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+
+<main th:fragment="content">
+
+</main>
+
+</body>
+</html>

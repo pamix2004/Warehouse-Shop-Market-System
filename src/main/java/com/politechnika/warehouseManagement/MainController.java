@@ -1,5 +1,7 @@
 package com.politechnika.warehouseManagement;
 
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
@@ -54,22 +56,22 @@ public class MainController {
     @PostMapping("/register")
     public String postRegister(@RequestParam("email") String email, @RequestParam("password") String password,Model model){
 
+
         User userEntity = userRepository.findByEmail(email);
 
         //It means that user exists, we have to determine if they are active (confirmed via email)
         if(userEntity != null){
             if(userEntity.isActive()){
                 System.out.println("User is already active");
-                model.addAttribute("mailSent", false);
-                model.addAttribute("userAlreadyActive", true);
+                return "redirect:/register?error=Account with this email is already active";
             }
             //User exists but has not been confirmed
             else{
                 sendConfirmationMail(email,userEntity.getId());
 
-                // ⭐ Add flags to your model
-                model.addAttribute("mailSent", true);
-                model.addAttribute("userAlreadyActive", false);
+                //We notify a user that mail was sent
+                return "redirect:/register?mailSent=Email has been sent.";
+
             }
 
         }
@@ -87,37 +89,47 @@ public class MainController {
             newUserEntity.setPassword(hashedPassword);
             userRepository.save(newUserEntity);
             sendConfirmationMail(email,newUserEntity.getId());
-            model.addAttribute("mailSent", true);
-            model.addAttribute("userAlreadyActive", false);
+            return "redirect:/register?mailSent=Email has been sent.";
+
         }
 
 
 
 
-        return  "index";
+
     }
 
     @GetMapping("/verify")
     public String verifyAccount(@RequestParam String token){
-        //If token is valid we assign it, if it's invalid we throw an exception
-        int id = jwtService.handleVerification(token);
+        try{
+            //If token is valid we assign it, if it's invalid we throw an exception
+            int id = jwtService.handleVerification(token);
 
-        //If no error was thrown it's all cool and we can update the database
+            //If no error was thrown it's all cool and we can update the database
 
-        User user = userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
+            User user = userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
 
-        user.setIs_active(true);   // <---- update field
-        userRepository.save(user); // <---- save to DB
+            user.setIs_active(true);   // <---- update field
+            userRepository.save(user); // <---- save to DB
 
-        System.out.println("User activated: " + id);
+            System.out.println("User activated: " + id);
 
-        System.out.println("poprawny token dla id: " + id);
-
-
+            System.out.println("poprawny token dla id: " + id);
 
 
-        System.out.println("token: " + token);
-        return  "verify";
+
+
+            System.out.println("token: " + token);
+            return "redirect:/login?successMessage=Your account has been verified.";
+        }
+        catch (ExpiredJwtException e){
+            return "redirect:/register?failMessage=Your link has expired, register again.";
+        }
+        catch (JwtException e){
+            return "redirect:/register?failMessage=Your link is invalid, register again.";
+        }
+
+
 
     }
 
