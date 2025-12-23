@@ -60,6 +60,26 @@
                     <input type="password" id="password" name="password" class="form-control" required>
                 </div>
 
+                <div class="mb-5">
+                    <label for="est_name" class="form-label">Name of your establishement:</label>
+                    <!-- Changed type="text" to type="email" for better mobile keyboard support -->
+                    <input type="text" id="est_name" name="est_name" class="form-control" required>
+                </div>
+
+                <div class="mb-5">
+                    <label for="est_name" class="form-label">Addresss of your establishement:</label>
+                    <!-- Changed type="text" to type="email" for better mobile keyboard support -->
+                    <input type="text" id="address" name="address" class="form-control" required>
+                </div>
+
+                <div class="mb-7">
+                    <label for="role" class="form-label">Role:</label>
+                    <select id="role" name="role" class="form-control" required>
+                        <option value="wholesaler">Wholesaler</option>
+                        <option value="store">Store</option>
+                    </select>
+                </div>
+
                 <div class="d-grid">
                     <!-- Changed text to "Register" since this is the registration page -->
                     <button type="submit" class="btn btn-primary">Register</button>

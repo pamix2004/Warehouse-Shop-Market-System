@@ -3,7 +3,6 @@ package com.politechnika.warehouseManagement;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -17,6 +16,12 @@ public class MainController {
 
     @Autowired
     private UserRepository userRepository; // Spring injects it
+
+    @Autowired
+    private StoreRepository storeRepository;
+
+    @Autowired
+    private WholesalerRepository wholesalerRepository;
 
     @Autowired
     private EmailSenderService senderService;
@@ -34,9 +39,21 @@ public class MainController {
         String email = authentication.getName();
 
         User userEntity = userRepository.findByEmail(email);
-
         model.addAttribute("email",userEntity.getEmail());
         model.addAttribute("id",userEntity.getId());
+
+        String role = userEntity.getRole();
+        model.addAttribute("role",role);
+        if (role.equals("store")) {
+            Store storeEntity = storeRepository.findByUser_Id(userEntity.getId());
+            model.addAttribute("est_name",storeEntity.getName());
+            model.addAttribute("address",storeEntity.getAddress());
+        } else if (role.equals("wholesaler")) {
+            Wholesaler wsEntity = wholesalerRepository.findByUser_Id(userEntity.getId());
+            model.addAttribute("est_name",wsEntity.getName());
+            model.addAttribute("address",wsEntity.getAddress());
+        }
+
         return "hello";
     }
     @GetMapping("/register")
@@ -54,7 +71,9 @@ public class MainController {
     }
 
     @PostMapping("/register")
-    public String postRegister(@RequestParam("email") String email, @RequestParam("password") String password,Model model){
+    public String postRegister(@RequestParam("email") String email, @RequestParam("password") String password,
+                               @RequestParam("role") String role, @RequestParam("est_name") String name,
+                               @RequestParam("address") String address, Model model){
 
 
         User userEntity = userRepository.findByEmail(email);
@@ -80,7 +99,7 @@ public class MainController {
             //We need to create a new record and send email
             User newUserEntity = new User();
             newUserEntity.setEmail(email);
-
+            newUserEntity.setRole(role);
             String rawPassword = password;
             int strength = 10;
             BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(strength);
@@ -89,8 +108,26 @@ public class MainController {
             newUserEntity.setPassword(hashedPassword);
             userRepository.save(newUserEntity);
             sendConfirmationMail(email,newUserEntity.getId());
-            return "redirect:/register?mailSent=Email has been sent.";
 
+            // Create record in either the store or wholesaler table
+            // create record in either the wholesaler or store table
+            if (role.equals("store")) {
+                Store newStoreEntity = new Store();
+                newStoreEntity.setUser(newUserEntity);
+                newStoreEntity.setAddress(address);
+                newStoreEntity.setName(name);
+
+                storeRepository.save(newStoreEntity);
+            } else if (role.equals("wholesaler")) {
+                Wholesaler newWholesalerEntity = new Wholesaler();
+                newWholesalerEntity.setUser(newUserEntity);
+                newWholesalerEntity.setAddress(address);
+                newWholesalerEntity.setName(name);
+
+                wholesalerRepository.save(newWholesalerEntity);
+            }
+
+            return "redirect:/register?mailSent=Email has been sent.";
         }
 
 

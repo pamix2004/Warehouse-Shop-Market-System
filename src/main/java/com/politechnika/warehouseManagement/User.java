@@ -13,6 +13,7 @@ public class User {
     private String email;
     private String password;
     private boolean is_active;
+    private String role;
 
     // ===== Getters and Setters =====
     public int getId() {
@@ -46,6 +47,13 @@ public class User {
         this.is_active = is_active;
     }
 
+    public String getRole() {
+        return role;
+    }
+    public void setRole(String role) {
+        this.role = role;
+    }
+
 
 
     // ===== toString() =====
@@ -56,6 +64,7 @@ public class User {
                 ", email='" + email + '\'' +
                 ", password='" + password + '\'' +
                 ", is_active='" + is_active + '\'' +
+                ", role='" + role + '\'' +
                 '}';
     }
 }
