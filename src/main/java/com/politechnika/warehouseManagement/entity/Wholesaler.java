@@ -1,4 +1,4 @@
-package com.politechnika.warehouseManagement;
+package com.politechnika.warehouseManagement.entity;
 
 import jakarta.persistence.*;
 
@@ -8,12 +8,12 @@ public class Wholesaler {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private int wholesaler_id;
+    private int id;
 
     private String name;
     private String address;
 
-    @ManyToOne
+    @OneToOne
     @JoinColumn(name = "user_id")
     private User user;
 
@@ -21,12 +21,12 @@ public class Wholesaler {
     // ===== Getters and Setters =====
 
 
-    public int getWholesaler_id() {
-        return wholesaler_id;
+    public int getId() {
+        return id;
     }
 
-    public void setWholesaler_id(int wholesaler_id) {
-        this.wholesaler_id = wholesaler_id;
+    public void setId(int id) {
+        this.id = id;
     }
 
     public User getUser() {
@@ -57,8 +57,8 @@ public class Wholesaler {
     @Override
     public String toString() {
         return "Store{" +
-                "id=" + wholesaler_id +
-                ", user_id='" + user.getId() + '\'' +
+                "id=" + id +
+                ", user_id=" + user.getId() +
                 ", name='" + name + '\'' +
                 ", address='" + address + '\'' +
                 '}';

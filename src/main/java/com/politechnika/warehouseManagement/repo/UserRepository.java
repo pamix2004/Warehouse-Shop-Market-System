@@ -1,7 +1,7 @@
-package com.politechnika.warehouseManagement;
+package com.politechnika.warehouseManagement.repo;
 
+import com.politechnika.warehouseManagement.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.repository.CrudRepository;
 
 public interface UserRepository extends JpaRepository<User, Integer> {
     User findByEmail(String email);

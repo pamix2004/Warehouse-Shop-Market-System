@@ -1,5 +1,11 @@
 package com.politechnika.warehouseManagement;
 
+import com.politechnika.warehouseManagement.entity.Store;
+import com.politechnika.warehouseManagement.entity.User;
+import com.politechnika.warehouseManagement.entity.Wholesaler;
+import com.politechnika.warehouseManagement.repo.StoreRepository;
+import com.politechnika.warehouseManagement.repo.UserRepository;
+import com.politechnika.warehouseManagement.repo.WholesalerRepository;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,8 +39,8 @@ public class MainController {
         return "login"; // resolves to login.jsp or login.html
     }
 
-    @GetMapping("/hello")
-    public String hello(Model model){
+    @GetMapping("/account")
+    public String account(Model model){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
 
@@ -54,7 +60,7 @@ public class MainController {
             model.addAttribute("address",wsEntity.getAddress());
         }
 
-        return "hello";
+        return "account";
     }
     @GetMapping("/register")
     public String getRegister(Model model){
@@ -129,11 +135,6 @@ public class MainController {
 
             return "redirect:/register?mailSent=Email has been sent.";
         }
-
-
-
-
-
     }
 
     @GetMapping("/verify")

@@ -1,7 +1,7 @@
-package com.politechnika.warehouseManagement;
+package com.politechnika.warehouseManagement.repo;
 
+import com.politechnika.warehouseManagement.entity.Store;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.repository.CrudRepository;
 
 public interface StoreRepository extends JpaRepository<Store, Integer> {
     Store findByUser_Id(int userId);

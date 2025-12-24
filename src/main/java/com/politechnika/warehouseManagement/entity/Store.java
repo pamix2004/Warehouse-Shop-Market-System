@@ -1,4 +1,4 @@
-package com.politechnika.warehouseManagement;
+package com.politechnika.warehouseManagement.entity;
 
 import jakarta.persistence.*;
 
@@ -8,23 +8,23 @@ public class Store {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private int store_id;
+    private int id;
 
     private String name;
     private String address;
 
-    @ManyToOne
+    @OneToOne
     @JoinColumn(name = "user_id")
     private User user;
 
     // ===== Getters and Setters =====
 
-    public int getStore_id() {
-        return store_id;
+    public int getId() {
+        return id;
     }
 
-    public void setStore_id(int store_id) {
-        this.store_id = store_id;
+    public void setId(int id) {
+        this.id = id;
     }
 
     public String getName() {
@@ -55,9 +55,9 @@ public class Store {
     @Override
     public String toString() {
         return "Store{" +
-                "id=" + store_id +
+                "id=" + id +
                 ", name='" + name + '\'' +
-                ", user_id='" + user.getId() + '\'' +
+                ", user_id=" + user.getId() +
                 ", address='" + address + '\'' +
                 '}';
     }

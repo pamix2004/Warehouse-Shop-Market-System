@@ -1,4 +1,4 @@
-package com.politechnika.warehouseManagement;
+package com.politechnika.warehouseManagement.entity;
 
 import jakarta.persistence.*;
 
