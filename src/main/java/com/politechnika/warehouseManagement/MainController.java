@@ -1,11 +1,8 @@
 package com.politechnika.warehouseManagement;
 
-import com.politechnika.warehouseManagement.entity.Store;
-import com.politechnika.warehouseManagement.entity.User;
-import com.politechnika.warehouseManagement.entity.Wholesaler;
-import com.politechnika.warehouseManagement.repo.StoreRepository;
-import com.politechnika.warehouseManagement.repo.UserRepository;
-import com.politechnika.warehouseManagement.repo.WholesalerRepository;
+import com.politechnika.warehouseManagement.dto.OfferFormDTO;
+import com.politechnika.warehouseManagement.entity.*;
+import com.politechnika.warehouseManagement.repo.*;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +12,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+
 
 
 @Controller
@@ -30,9 +28,23 @@ public class MainController {
     private WholesalerRepository wholesalerRepository;
 
     @Autowired
+    private OfferRepository offerRepository;
+
+    @Autowired
+    private ProductRepository productRepository; // do selecta produktów
+
+    @Autowired
+    private ProducerRepository producerRepository;
+
+    @Autowired
+    private ProductCategoryRepository categoryRepository;
+
+    @Autowired
     private EmailSenderService senderService;
     @Autowired
     private JwtService jwtService;
+
+
 
     @GetMapping("/login")
     public String loginPage() {
@@ -56,12 +68,23 @@ public class MainController {
             model.addAttribute("address",storeEntity.getAddress());
         } else if (role.equals("wholesaler")) {
             Wholesaler wsEntity = wholesalerRepository.findByUser_Id(userEntity.getId());
-            model.addAttribute("est_name",wsEntity.getName());
-            model.addAttribute("address",wsEntity.getAddress());
+            model.addAttribute("est_name", wsEntity.getName());
+            model.addAttribute("address", wsEntity.getAddress());
+
+            // OFERTY HURTOWNIKA
+            model.addAttribute("offers", offerRepository.findByWholesaler(wsEntity));
+
+            // FORMULARZ
+            model.addAttribute("offerForm", new OfferFormDTO());
+            model.addAttribute("products", productRepository.findAll());
+            model.addAttribute("producers", producerRepository.findAll());
+            model.addAttribute("categories", categoryRepository.findAll());
+
         }
 
         return "account";
     }
+
     @GetMapping("/register")
     public String getRegister(Model model){
         return  "register";
@@ -166,15 +189,52 @@ public class MainController {
         catch (JwtException e){
             return "redirect:/register?failMessage=Your link is invalid, register again.";
         }
-
-
-
     }
 
+    @PostMapping("/account/offer/add")
+    public String addOffer(@ModelAttribute("offerForm") OfferFormDTO form) {
 
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
 
+        User user = userRepository.findByEmail(email);
+        Wholesaler wholesaler = wholesalerRepository.findByUser_Id(user.getId());
 
+        Product product;
 
+        // ===== WYBRANY ISTNIEJĄCY PRODUKT =====
+        if (form.getProductId() != null) {
 
+            product = productRepository.findById(form.getProductId())
+                    .orElseThrow(() -> new RuntimeException("Product not found"));
+
+        }
+        // ===== NOWY PRODUKT =====
+        else {
+
+            Product newProduct = new Product();
+            newProduct.setName(form.getProductName());
+            newProduct.setProducer(
+                    producerRepository.findById(form.getProducerId()).orElseThrow()
+            );
+            newProduct.setCategory(
+                    categoryRepository.findById(form.getCategoryId()).orElseThrow()
+            );
+
+            product = productRepository.save(newProduct);
+        }
+
+        // ===== OFERTA =====
+        Offer offer = new Offer();
+        offer.setProduct(product);
+        offer.setWholesaler(wholesaler);
+        offer.setPrice(form.getPrice());
+        offer.setAvailable_quantity(form.getAvailable_quantity());
+        offer.setMinimal_quantity(form.getMinimal_quantity());
+
+        offerRepository.save(offer);
+
+        return "redirect:/account";
+    }
 
 }
