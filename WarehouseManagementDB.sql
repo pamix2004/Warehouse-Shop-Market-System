@@ -15,7 +15,6 @@
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
-USE warehousemanagementdb;
 --
 -- Table structure for table `delivery`
 --
@@ -82,17 +81,17 @@ DROP TABLE IF EXISTS `offer`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `offer` (
-  `offer_id` int NOT NULL,
+  `id` int NOT NULL,
   `product_id` int NOT NULL,
   `wholesaler_id` int NOT NULL,
   `available_quantity` int NOT NULL,
   `minimal_quantity` int NOT NULL,
-  `price` decimal(10,2) NOT NULL,
-  PRIMARY KEY (`offer_id`),
+  `price` float NOT NULL,
+  PRIMARY KEY (`id`),
   KEY `fk_offer_product` (`product_id`),
   KEY `fk_offer_wholesaler` (`wholesaler_id`),
-  CONSTRAINT `fk_offer_product` FOREIGN KEY (`product_id`) REFERENCES `product` (`product_id`),
-  CONSTRAINT `fk_offer_wholesaler` FOREIGN KEY (`wholesaler_id`) REFERENCES `wholesaler` (`wholesaler_id`)
+  CONSTRAINT `fk_offer_product` FOREIGN KEY (`product_id`) REFERENCES `product` (`id`),
+  CONSTRAINT `fk_offer_wholesaler` FOREIGN KEY (`wholesaler_id`) REFERENCES `wholesaler` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -102,6 +101,7 @@ CREATE TABLE `offer` (
 
 LOCK TABLES `offer` WRITE;
 /*!40000 ALTER TABLE `offer` DISABLE KEYS */;
+INSERT INTO `offer` VALUES (1,209,1,1000,30,30),(2,1,1,1000,50,50);
 /*!40000 ALTER TABLE `offer` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -121,7 +121,7 @@ CREATE TABLE `order_offer` (
   KEY `fk_order_offer_product` (`product_id`),
   KEY `fk_order_offer_order` (`order_id`),
   CONSTRAINT `fk_order_offer_order` FOREIGN KEY (`order_id`) REFERENCES `orders` (`order_id`),
-  CONSTRAINT `fk_order_offer_product` FOREIGN KEY (`product_id`) REFERENCES `product` (`product_id`)
+  CONSTRAINT `fk_order_offer_product` FOREIGN KEY (`product_id`) REFERENCES `product` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -151,7 +151,7 @@ CREATE TABLE `orders` (
   PRIMARY KEY (`order_id`),
   KEY `fk_order_store` (`store_id`),
   KEY `fk_order_warehouse` (`warehouse_id`),
-  CONSTRAINT `fk_order_store` FOREIGN KEY (`store_id`) REFERENCES `store` (`store_id`),
+  CONSTRAINT `fk_order_store` FOREIGN KEY (`store_id`) REFERENCES `store` (`id`),
   CONSTRAINT `fk_order_warehouse` FOREIGN KEY (`warehouse_id`) REFERENCES `warehouse` (`warehouse_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -199,10 +199,10 @@ DROP TABLE IF EXISTS `producer`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `producer` (
-  `producer_id` int NOT NULL,
-  `producer_name` varchar(50) NOT NULL,
-  `headquarter_address` varchar(50) DEFAULT NULL,
-  PRIMARY KEY (`producer_id`)
+  `id` int NOT NULL,
+  `producer_name` varchar(255) DEFAULT NULL,
+  `headquarter_address` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -212,6 +212,7 @@ CREATE TABLE `producer` (
 
 LOCK TABLES `producer` WRITE;
 /*!40000 ALTER TABLE `producer` DISABLE KEYS */;
+INSERT INTO `producer` VALUES (100,'Heinz','Warszawa, ul. Nowa, 13');
 /*!40000 ALTER TABLE `producer` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -223,15 +224,15 @@ DROP TABLE IF EXISTS `product`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `product` (
-  `product_id` int NOT NULL,
-  `name` varchar(50) NOT NULL,
+  `id` int NOT NULL,
+  `name` varchar(255) DEFAULT NULL,
   `category_id` int NOT NULL,
   `producer_id` int NOT NULL,
-  PRIMARY KEY (`product_id`),
+  PRIMARY KEY (`id`),
   KEY `fk_product_category` (`category_id`),
   KEY `fk_product_producer` (`producer_id`),
-  CONSTRAINT `fk_product_category` FOREIGN KEY (`category_id`) REFERENCES `product_category` (`category_id`),
-  CONSTRAINT `fk_product_producer` FOREIGN KEY (`producer_id`) REFERENCES `producer` (`producer_id`)
+  CONSTRAINT `fk_product_category` FOREIGN KEY (`category_id`) REFERENCES `product_category` (`id`),
+  CONSTRAINT `fk_product_producer` FOREIGN KEY (`producer_id`) REFERENCES `producer` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -241,6 +242,7 @@ CREATE TABLE `product` (
 
 LOCK TABLES `product` WRITE;
 /*!40000 ALTER TABLE `product` DISABLE KEYS */;
+INSERT INTO `product` VALUES (1,'Keczup Heinz, 800 ml',109,100),(209,'Keczup Heinz, 300 ml',109,100);
 /*!40000 ALTER TABLE `product` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -252,12 +254,12 @@ DROP TABLE IF EXISTS `product_category`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `product_category` (
-  `category_id` int NOT NULL,
-  `name` varchar(50) NOT NULL,
+  `id` int NOT NULL,
+  `name` varchar(255) DEFAULT NULL,
   `type_id` int NOT NULL,
-  PRIMARY KEY (`category_id`),
+  PRIMARY KEY (`id`),
   KEY `fk_product_category_type` (`type_id`),
-  CONSTRAINT `fk_product_category_type` FOREIGN KEY (`type_id`) REFERENCES `product_type` (`type_id`)
+  CONSTRAINT `fk_product_category_type` FOREIGN KEY (`type_id`) REFERENCES `product_type` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -267,6 +269,7 @@ CREATE TABLE `product_category` (
 
 LOCK TABLES `product_category` WRITE;
 /*!40000 ALTER TABLE `product_category` DISABLE KEYS */;
+INSERT INTO `product_category` VALUES (109,'kechup',235);
 /*!40000 ALTER TABLE `product_category` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -278,9 +281,9 @@ DROP TABLE IF EXISTS `product_type`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `product_type` (
-  `type_id` int NOT NULL,
-  `name` varchar(50) NOT NULL,
-  PRIMARY KEY (`type_id`)
+  `id` int NOT NULL,
+  `name` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -290,6 +293,7 @@ CREATE TABLE `product_type` (
 
 LOCK TABLES `product_type` WRITE;
 /*!40000 ALTER TABLE `product_type` DISABLE KEYS */;
+INSERT INTO `product_type` VALUES (235,'płyn');
 /*!40000 ALTER TABLE `product_type` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -301,13 +305,13 @@ DROP TABLE IF EXISTS `store`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `store` (
-  `store_id` int NOT NULL,
-  `name` varchar(50) NOT NULL,
+  `id` int NOT NULL,
+  `name` varchar(255) DEFAULT NULL,
   `user_id` int NOT NULL,
-  `address` varchar(50) DEFAULT NULL,
-  PRIMARY KEY (`store_id`),
+  `address` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`),
   KEY `fk_store_user` (`user_id`),
-  CONSTRAINT `fk_store_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`)
+  CONSTRAINT `fk_store_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -317,6 +321,7 @@ CREATE TABLE `store` (
 
 LOCK TABLES `store` WRITE;
 /*!40000 ALTER TABLE `store` DISABLE KEYS */;
+INSERT INTO `store` VALUES (1,'Biedronka',2,'ul. Warszawska, 17. Kraków');
 /*!40000 ALTER TABLE `store` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -328,12 +333,12 @@ DROP TABLE IF EXISTS `users`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `users` (
-  `user_id` int NOT NULL,
+  `id` int NOT NULL,
   `email` varchar(255) DEFAULT NULL,
   `password` varchar(255) DEFAULT NULL,
   `is_active` bit(1) NOT NULL,
-  `role` varchar(50) NOT NULL DEFAULT 'user',
-  PRIMARY KEY (`user_id`),
+  `role` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`),
   UNIQUE KEY `email` (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -344,6 +349,7 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
+INSERT INTO `users` VALUES (2,'qwerty2name@gmail.com','$2a$10$WyVd2ShX6JG6mGfs2lqXCuzHNcgJPdno4NQVhmoJw61ShHOyyti0W',_binary '','store'),(52,'mik.karaman.2006@gmail.com','$2a$10$1CeyzapkTvC7UY0fMTJtcOrRtNTRjhdapoTA0VQh5miVZlty0rwMa',_binary '','wholesaler');
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -381,12 +387,13 @@ DROP TABLE IF EXISTS `wholesaler`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `wholesaler` (
-  `wholesaler_id` int NOT NULL,
+  `id` int NOT NULL,
   `user_id` int NOT NULL,
-  `address` varchar(50) DEFAULT NULL,
-  PRIMARY KEY (`wholesaler_id`),
+  `name` varchar(255) DEFAULT NULL,
+  `address` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`),
   KEY `fk_wholesaler_user` (`user_id`),
-  CONSTRAINT `fk_wholesaler_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`)
+  CONSTRAINT `fk_wholesaler_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -396,6 +403,7 @@ CREATE TABLE `wholesaler` (
 
 LOCK TABLES `wholesaler` WRITE;
 /*!40000 ALTER TABLE `wholesaler` DISABLE KEYS */;
+INSERT INTO `wholesaler` VALUES (1,52,'Hurtownia XYZ','ul. Szlak, 20. Kraków');
 /*!40000 ALTER TABLE `wholesaler` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -408,4 +416,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-12-05  3:08:27
+-- Dump completed on 2025-12-25  1:40:00
