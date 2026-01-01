@@ -1,0 +1,30 @@
+server:
+  port: 8085
+
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: offer-service
+          uri: lb://OFFER-SERVICE
+          predicates:
+            - Path=/offer/**
+          filters:
+            - AuthenticationFilter
+            - PreserveHostHeader
+        - id: jwt-service
+          uri: lb://JWT-SERVICE
+          predicates:
+            - Path=/jwt/**
+
+        - id: email-service
+          uri: lb://EMAIL-SERVICE
+          predicates:
+                - Path=/email/**
+
+        - id: auth-service
+          uri: lb://AUTH-SERVICE
+          predicates:
+            - Path=/auth/**
+          filters:
+            - PreserveHostHeader

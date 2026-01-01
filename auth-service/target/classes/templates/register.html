@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Your Custom CSS -->
+    <link rel="stylesheet" th:href="@{/css/form.css}">
+</head>
+<body>
+
+<!-- Navbar -->
+<nav th:insert="base :: navbar"></nav>
+
+<!--
+   Using 'main-wrapper' from form.css
+   This centers the form vertically and horizontally
+-->
+<main class="main-wrapper">
+
+    <!--
+       Using 'login-card' from form.css
+       This handles the "100% width on mobile, 400px on PC" logic
+    -->
+    <div class="card shadow-sm login-card">
+        <div class="card-body p-4">
+
+            <h3 class="text-center mb-4">Rejestracja</h3>
+
+            <!-- YOUR ALERTS (Preserved) -->
+            <div th:if="${param.error}" class="alert alert-danger text-center" role="alert">
+                <span th:text="${param.error}"></span>
+            </div>
+
+            <div th:if="${param.mailSent}" class="alert alert-success text-center" role="alert">
+                <span th:text="${param.mailSent}"></span>
+            </div>
+
+            <div th:if="${param.failMessage}" class="alert alert-danger text-center" role="alert">
+                <span th:text="${param.failMessage}"></span>
+            </div>
+            <!-- END ALERTS -->
+
+            <!-- Form -->
+            <form th:action="@{/auth/register}" method="post">
+
+                <div class="mb-3">
+                    <label for="username" class="form-label">Email:</label>
+                    <!-- Changed type="text" to type="email" for better mobile keyboard support -->
+                    <input type="email" id="username" name="email" class="form-control" required>
+                </div>
+
+                <div class="mb-4">
+                    <label for="password" class="form-label">Password:</label>
+                    <input type="password" id="password" name="password" class="form-control" required>
+                </div>
+
+                <div class="mb-5">
+                    <label for="est_name" class="form-label">Name of your establishement:</label>
+                    <!-- Changed type="text" to type="email" for better mobile keyboard support -->
+                    <input type="text" id="est_name" name="est_name" class="form-control" required>
+                </div>
+
+                <div class="mb-5">
+                    <label for="est_name" class="form-label">Addresss of your establishement:</label>
+                    <!-- Changed type="text" to type="email" for better mobile keyboard support -->
+                    <input type="text" id="address" name="address" class="form-control" required>
+                </div>
+
+                <div class="mb-7">
+                    <label for="role" class="form-label">Role:</label>
+                    <select id="role" name="role" class="form-control" required>
+                        <option value="wholesaler">Wholesaler</option>
+                        <option value="store">Store</option>
+                    </select>
+                </div>
+
+                <div class="d-grid">
+                    <!-- Changed text to "Register" since this is the registration page -->
+                    <button type="submit" class="btn btn-primary">Register</button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</main>
+
+</body>
+</html>
