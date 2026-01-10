@@ -2,6 +2,7 @@ package com.warehouseManagement.demo;
 
 
 import com.warehouseManagement.demo.dto.OfferFormDTO;
+import com.warehouseManagement.demo.dto.OfferPurchaseDTO;
 import com.warehouseManagement.demo.entity.*;
 import com.warehouseManagement.demo.repo.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -143,7 +144,45 @@ public class OfferServiceController {
         return "redirect:/offer/account";
     }
 
+    @PostMapping("/purchase")
+    @ResponseBody
+    public ResponseEntity<?> purchaseOffer(
+            @RequestHeader("X-User-Id") int userId,
+            @RequestBody OfferPurchaseDTO dto
+    ) {
+        // 1. Sprawdź czy user to STORE
+        User user = userRepository.findById(userId);
+        if (!"store".equals(user.getRole())) {
+            return ResponseEntity.status(403).body("Only stores can buy offers");
+        }
 
+        // 2. Pobierz ofertę
+        Offer offer = offerRepository.findById(dto.getOfferId())
+                .orElseThrow(() -> new RuntimeException("Offer not found"));
+
+        // 3. Walidacja ilości
+        if (dto.getQuantity() < offer.getMinimal_quantity()) {
+            return ResponseEntity.badRequest()
+                    .body("Quantity below minimal order amount");
+        }
+
+        if (dto.getQuantity() > offer.getAvailable_quantity()) {
+            return ResponseEntity.badRequest()
+                    .body("Not enough quantity available");
+        }
+
+        // 4. ZMNIEJSZ ILOŚĆ
+        offer.setAvailable_quantity(
+                offer.getAvailable_quantity() - dto.getQuantity()
+        );
+
+        offerRepository.save(offer);
+
+        return ResponseEntity.ok("Offer purchased successfully");
     }
+
+
+
+}
 
 

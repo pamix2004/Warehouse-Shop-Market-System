@@ -6,12 +6,30 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
+        <module name="demo (1) (com.cloudGateway)" />
         <module name="warehouseManagement" />
+        <module name="demo (1) (com.eurekaServer)" />
+      </profile>
+      <profile name="Annotation profile for offer-service" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/unknown/lombok-unknown.jar" />
+        </processorPath>
+        <module name="demo (1)" />
+        <module name="demo" />
+        <module name="demo (1) (com.warehouseManegement)" />
       </profile>
     </annotationProcessing>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="demo" options="-parameters" />
+      <module name="demo (1)" options="-parameters" />
+      <module name="demo (1) (com.cloudGateway)" options="-parameters" />
+      <module name="demo (1) (com.eurekaServer)" options="-parameters" />
+      <module name="demo (1) (com.warehouseManegement)" options="-parameters" />
       <module name="warehouseManagement" options="-parameters" />
     </option>
   </component>
