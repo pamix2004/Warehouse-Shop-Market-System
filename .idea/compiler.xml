@@ -2,11 +2,13 @@
 <project version="4">
   <component name="CompilerConfiguration">
     <annotationProcessing>
+      <profile default="true" name="Default" enabled="true" />
       <profile name="Maven default annotation processors profile" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="demo (1) (com.cloudGateway)" />
+        <module name="demo (3) (com.eurekaServer)" />
         <module name="warehouseManagement" />
         <module name="demo (1) (com.eurekaServer)" />
       </profile>
@@ -21,6 +23,25 @@
         <module name="demo" />
         <module name="demo (1) (com.warehouseManegement)" />
       </profile>
+      <profile name="Annotation profile for jwt-service" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.42/lombok-1.18.42.jar" />
+        </processorPath>
+        <module name="demo (2) (com.warehouseManegement)" />
+        <module name="demo (4)" />
+      </profile>
+      <profile name="Annotation profile for demo (5)" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.42/lombok-1.18.42.jar" />
+        </processorPath>
+        <module name="demo (5)" />
+      </profile>
     </annotationProcessing>
   </component>
   <component name="JavacSettings">
@@ -30,6 +51,10 @@
       <module name="demo (1) (com.cloudGateway)" options="-parameters" />
       <module name="demo (1) (com.eurekaServer)" options="-parameters" />
       <module name="demo (1) (com.warehouseManegement)" options="-parameters" />
+      <module name="demo (2) (com.warehouseManegement)" options="-parameters" />
+      <module name="demo (3) (com.eurekaServer)" options="-parameters" />
+      <module name="demo (4)" options="-parameters" />
+      <module name="demo (5)" options="-parameters" />
       <module name="warehouseManagement" options="-parameters" />
     </option>
   </component>

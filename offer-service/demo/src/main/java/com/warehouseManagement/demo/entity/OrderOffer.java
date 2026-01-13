@@ -8,8 +8,8 @@ public class OrderOffer {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "order_product_id")
-    private Integer orderProductId;
+    @Column(name = "order_offer_id")
+    private Integer orderOfferId;
 
     @ManyToOne
     @JoinColumn(name = "order_id", nullable = false)
@@ -24,8 +24,8 @@ public class OrderOffer {
 
     // ===== getters =====
 
-    public Integer getOrderProductId() {
-        return orderProductId;
+    public Integer getOrderOfferId() {
+        return orderOfferId;
     }
 
     public Order getOrder() {

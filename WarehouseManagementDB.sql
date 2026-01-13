@@ -101,7 +101,7 @@ CREATE TABLE `offer` (
 
 LOCK TABLES `offer` WRITE;
 /*!40000 ALTER TABLE `offer` DISABLE KEYS */;
-INSERT INTO `offer` VALUES (1,209,1,510,30,30),(2,1,1,850,50,50),(3,209,2,70,20,2),(4,1,2,9900,20,10),(5,209,2,17900,70,10),(52,209,2,1500,50,5);
+INSERT INTO `offer` VALUES (1,209,1,510,30,30),(2,1,1,850,50,50),(3,209,2,70,20,2),(4,1,2,9870,20,10),(5,209,2,17800,70,10),(52,209,2,1500,50,5);
 /*!40000 ALTER TABLE `offer` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -135,16 +135,16 @@ DROP TABLE IF EXISTS `order_offer`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `order_offer` (
-  `order_product_id` int NOT NULL AUTO_INCREMENT,
+  `order_offer_id` int NOT NULL AUTO_INCREMENT,
   `order_id` int NOT NULL,
   `quantity` int NOT NULL,
   `offer_id` int DEFAULT NULL,
-  PRIMARY KEY (`order_product_id`),
+  PRIMARY KEY (`order_offer_id`),
   KEY `fk_order_offer_order` (`order_id`),
   KEY `fk_order_offer_offer` (`offer_id`),
   CONSTRAINT `fk_order_offer_offer` FOREIGN KEY (`offer_id`) REFERENCES `offer` (`id`),
   CONSTRAINT `fk_order_offer_order` FOREIGN KEY (`order_id`) REFERENCES `orders` (`order_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -153,7 +153,7 @@ CREATE TABLE `order_offer` (
 
 LOCK TABLES `order_offer` WRITE;
 /*!40000 ALTER TABLE `order_offer` DISABLE KEYS */;
-INSERT INTO `order_offer` VALUES (1,1,100,NULL),(2,2,200,NULL),(3,3,30,NULL),(4,11,700,5),(5,12,20,4),(6,13,100,5);
+INSERT INTO `order_offer` VALUES (1,1,100,NULL),(2,2,200,NULL),(3,3,30,NULL),(4,11,700,5),(5,12,20,4),(6,13,100,5),(7,14,30,4),(8,15,100,5);
 /*!40000 ALTER TABLE `order_offer` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -198,7 +198,7 @@ CREATE TABLE `orders` (
   KEY `fk_order_warehouse` (`warehouse_id`),
   CONSTRAINT `fk_order_store` FOREIGN KEY (`store_id`) REFERENCES `store` (`id`),
   CONSTRAINT `fk_order_warehouse` FOREIGN KEY (`warehouse_id`) REFERENCES `warehouse` (`warehouse_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -207,7 +207,7 @@ CREATE TABLE `orders` (
 
 LOCK TABLES `orders` WRITE;
 /*!40000 ALTER TABLE `orders` DISABLE KEYS */;
-INSERT INTO `orders` VALUES (1,2,NULL,'2026-01-13','CREATED',1000.00),(2,2,NULL,'2026-01-13','CREATED',2000.00),(3,2,NULL,'2026-01-13','CREATED',300.00),(11,2,NULL,'2026-01-13','CREATED',7000.00),(12,2,NULL,'2026-01-13','CREATED',200.00),(13,2,NULL,'2026-01-13','CREATED',1000.00);
+INSERT INTO `orders` VALUES (1,2,NULL,'2026-01-13','CREATED',1000.00),(2,2,NULL,'2026-01-13','CREATED',2000.00),(3,2,NULL,'2026-01-13','CREATED',300.00),(11,2,NULL,'2026-01-13','CREATED',7000.00),(12,2,NULL,'2026-01-13','CREATED',200.00),(13,2,NULL,'2026-01-13','CREATED',1000.00),(14,52,NULL,'2026-01-13','CREATED',300.00),(15,52,NULL,'2026-01-13','CREATED',1000.00);
 /*!40000 ALTER TABLE `orders` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -258,7 +258,7 @@ CREATE TABLE `producer` (
 
 LOCK TABLES `producer` WRITE;
 /*!40000 ALTER TABLE `producer` DISABLE KEYS */;
-INSERT INTO `producer` VALUES (100,'Heinz','Warszawa, ul. Nowa, 13');
+INSERT INTO `producer` VALUES (100,'Heinz','ul. Nowa 13, Warszawa'),(101,'Nestlé','ul. Domaniewska 32, Warszawa'),(102,'Unilever','ul. Bobrowiecka 8, Kraków'),(103,'Danone','ul. Bobrowiecka 6, Kraków'),(104,'Mondelez','ul. Słomińskiego 19, Warszawa'),(105,'Coca-Cola','ul. Senatorska 18, Warszawa'),(106,'PepsiCo','ul. Żwirki i Wigury 18, Warszawa'),(107,'Maspex','ul. Chopina 10, Wadowice'),(108,'Mlekovita','ul. Ludowa 122, Wysokie Mazowieckie'),(109,'Mlekpol','ul. Partyzantów 2A, Grajewo'),(110,'Tymbark','ul. Tymbark 156, Tymbark'),(111,'Żywiec Zdrój','ul. Zdrojowa 1, Radziechowy'),(112,'Wedel','al. Emila Wedla 5, Warszawa'),(113,'Bakalland','ul. Fabryczna 5, Warszawa'),(114,'Dr Oetker','ul. Emilii Plater 53, Warszawa'),(115,'Colian','ul. Zdrojowa 1, Opatówek'),(116,'Kraft Heinz','ul. Fabryczna 2, Pudliszki'),(117,'Hortex','ul. Stawki 2, Warszawa'),(118,'Lubella','ul. Wrotkowska 1, Lublin'),(119,'Zott','ul. Kilińskiego 3, Opole'),(120,'OSM Piątnica','ul. Forteczna 3, Piątnica'),(121,'Wawel','ul. Dobra 50, Kraków');
 /*!40000 ALTER TABLE `producer` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -310,7 +310,7 @@ CREATE TABLE `product` (
 
 LOCK TABLES `product` WRITE;
 /*!40000 ALTER TABLE `product` DISABLE KEYS */;
-INSERT INTO `product` VALUES (1,'Keczup Heinz, 800 ml',109,100),(209,'Keczup Heinz, 300 ml',109,100);
+INSERT INTO `product` VALUES (1,'Keczup Heinz, 800 ml',109,100),(5,'Majonez Kielecki, 310 ml',402,115),(6,'Majonez Dekoracyjny Winiary, 400 ml',402,101),(7,'Sos czosnkowy Winiary, 250 ml',404,101),(8,'Sos BBQ Heinz, 220 ml',404,100),(9,'Makaron Lubella Spaghetti, 500 g',406,118),(10,'Makaron Lubella Penne, 500 g',406,118),(11,'Czekolada Wedel gorzka 64%',412,112),(12,'Czekolada Wedel mleczna',412,112),(13,'Baton Prince Polo Classic',411,116),(14,'Baton KitKat',411,101),(15,'Coca-Cola Original, 1.5 l',450,105),(16,'Coca-Cola Zero, 0.5 l',450,105),(17,'Pepsi, 1.5 l',450,106),(18,'Tymbark jabłko-mięta, 1 l',452,110),(19,'Tiger Energy Drink, 0.25 l',454,107),(20,'Ludwik płyn do mycia naczyń, 900 ml',421,102),(21,'Persil proszek do prania',422,102),(22,'Ariel kapsułki do prania, 30 szt.',423,102),(209,'Keczup Heinz, 300 ml',109,100);
 /*!40000 ALTER TABLE `product` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -337,7 +337,7 @@ CREATE TABLE `product_category` (
 
 LOCK TABLES `product_category` WRITE;
 /*!40000 ALTER TABLE `product_category` DISABLE KEYS */;
-INSERT INTO `product_category` VALUES (109,'kechup',235);
+INSERT INTO `product_category` VALUES (109,'keczupy',306),(402,'majonezy',306),(403,'musztardy',306),(404,'sosy',306),(405,'przyprawy',306),(406,'makarony',306),(407,'ryż',306),(408,'kasze',306),(409,'konserwy mięsne',306),(410,'konserwy warzywne',306),(411,'słodycze',306),(412,'czekolady',306),(413,'ciastka',306),(414,'płatki śniadaniowe',306),(415,'dżemy',306),(416,'miody',306),(417,'oleje spożywcze',306),(418,'oliwy',306),(419,'produkty śniadaniowe',306),(420,'przetwory warzywne',306),(421,'płyny do mycia naczyń',307),(422,'proszki do prania',307),(423,'kapsułki do prania',307),(424,'płyny do płukania',307),(425,'środki czystości',307),(426,'odkamieniacze',307),(427,'środki do łazienki',307),(428,'środki do kuchni',307),(429,'odświeżacze powietrza',307),(430,'środki dezynfekujące',307),(431,'leki przeciwbólowe',308),(432,'leki przeciwgorączkowe',308),(433,'leki na przeziębienie',308),(439,'witaminy',308),(441,'szampony',309),(442,'odżywki do włosów',309),(443,'mydła',309),(444,'żele pod prysznic',309),(445,'kremy do twarzy',309),(446,'balsamy do ciała',309),(447,'dezodoranty',309),(448,'perfumy',309),(449,'kosmetyki do makijażu',309),(450,'wody mineralne',310),(451,'napoje gazowane',310),(452,'soki',310),(453,'nektary',310),(454,'napoje energetyczne',310),(455,'napoje izotoniczne',310),(456,'herbaty',310),(457,'kawy',310),(458,'piwa',311),(459,'wina',311),(460,'wódki',311),(461,'whisky',311),(462,'likiery',311),(463,'papier toaletowy',312),(464,'ręczniki papierowe',312),(465,'chusteczki higieniczne',312),(466,'pasty do zębów',312),(467,'szczoteczki do zębów',312),(468,'płyny do higieny jamy ustnej',312),(469,'karma dla psów',315),(470,'karma dla kotów',315),(471,'karma dla królików',315);
 /*!40000 ALTER TABLE `product_category` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -405,7 +405,7 @@ CREATE TABLE `product_type` (
 
 LOCK TABLES `product_type` WRITE;
 /*!40000 ALTER TABLE `product_type` DISABLE KEYS */;
-INSERT INTO `product_type` VALUES (235,'płyn');
+INSERT INTO `product_type` VALUES (306,'spożywcze'),(307,'chemia gospodarcza'),(308,'farmaceutyka'),(309,'kosmetyki'),(310,'napoje'),(311,'alkohole'),(312,'artykuły higieniczne'),(313,'suplementy diety'),(314,'produkty dla dzieci'),(315,'karma dla zwierząt'),(323,'artykuły biurowe'),(325,'RTV');
 /*!40000 ALTER TABLE `product_type` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -455,7 +455,7 @@ CREATE TABLE `store` (
 
 LOCK TABLES `store` WRITE;
 /*!40000 ALTER TABLE `store` DISABLE KEYS */;
-INSERT INTO `store` VALUES (1,'Biedronka',2,'ul. Warszawska, 17. Kraków'),(2,'Store',54,'ul. Store, Krakow');
+INSERT INTO `store` VALUES (1,'Biedronka',2,'ul. Warszawska, 17. Kraków'),(2,'Store',54,'ul. Store, Krakow'),(52,'Store30',102,'ul. Stara 18, Kraków');
 /*!40000 ALTER TABLE `store` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -477,7 +477,7 @@ CREATE TABLE `store_seq` (
 
 LOCK TABLES `store_seq` WRITE;
 /*!40000 ALTER TABLE `store_seq` DISABLE KEYS */;
-INSERT INTO `store_seq` VALUES (101);
+INSERT INTO `store_seq` VALUES (151);
 /*!40000 ALTER TABLE `store_seq` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -505,7 +505,7 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (1,'wholesaler1@gmail.com','$2a$10$qvusPWzHhDmTKkllrdR/zervQ5tpJMNO24PunT1h3T48Y4mXUBTOa',_binary '','wholesaler'),(2,'qwerty2name@gmail.com','$2a$10$WyVd2ShX6JG6mGfs2lqXCuzHNcgJPdno4NQVhmoJw61ShHOyyti0W',_binary '','store'),(3,'wholesaler2@gmail.com','$2a$10$DMjfr6s417VNjUf4Uy2mg./TLkzam58IzwpV5K1Hbiv.4D4WEv90O',_binary '','wholesaler'),(52,'mik.karaman.2006@gmail.com','$2a$10$1CeyzapkTvC7UY0fMTJtcOrRtNTRjhdapoTA0VQh5miVZlty0rwMa',_binary '','wholesaler'),(53,'store2@gmail.com','$2a$10$6zvp7ltQe2IQpijhxLTfi.DWhwWTQGzn8v7JuB5G2uPPIiHwwunzK',_binary '','store'),(54,'store@gmail.com','$2a$10$BsXedosDj6WpbpdUAydyv.5AX5impu5zl/Zk2K6KE7YXS34.bDdcu',_binary '','store');
+INSERT INTO `users` VALUES (1,'wholesaler1@gmail.com','$2a$10$qvusPWzHhDmTKkllrdR/zervQ5tpJMNO24PunT1h3T48Y4mXUBTOa',_binary '','wholesaler'),(2,'qwerty2name@gmail.com','$2a$10$WyVd2ShX6JG6mGfs2lqXCuzHNcgJPdno4NQVhmoJw61ShHOyyti0W',_binary '','store'),(3,'wholesaler2@gmail.com','$2a$10$DMjfr6s417VNjUf4Uy2mg./TLkzam58IzwpV5K1Hbiv.4D4WEv90O',_binary '','wholesaler'),(52,'mik.karaman.2006@gmail.com','$2a$10$1CeyzapkTvC7UY0fMTJtcOrRtNTRjhdapoTA0VQh5miVZlty0rwMa',_binary '','wholesaler'),(53,'store2@gmail.com','$2a$10$6zvp7ltQe2IQpijhxLTfi.DWhwWTQGzn8v7JuB5G2uPPIiHwwunzK',_binary '','store'),(54,'store@gmail.com','$2a$10$BsXedosDj6WpbpdUAydyv.5AX5impu5zl/Zk2K6KE7YXS34.bDdcu',_binary '','store'),(102,'store30@gmail.com','$2a$10$o9NaU26hxZB2vHLmd3iWA.hI3AvE6sAjxIHRHHLj4ODrxlg0k.8w6',_binary '','store');
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -527,7 +527,7 @@ CREATE TABLE `users_seq` (
 
 LOCK TABLES `users_seq` WRITE;
 /*!40000 ALTER TABLE `users_seq` DISABLE KEYS */;
-INSERT INTO `users_seq` VALUES (151);
+INSERT INTO `users_seq` VALUES (201);
 /*!40000 ALTER TABLE `users_seq` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -616,4 +616,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-01-13  5:47:57
+-- Dump completed on 2026-01-13 17:06:09
