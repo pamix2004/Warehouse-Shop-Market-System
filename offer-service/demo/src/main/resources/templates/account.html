@@ -23,6 +23,9 @@
             <th>Minimal quantity</th>
         </tr>
 
+        <a href="/offer/wholesaler/orders">Orders for my offers</a>
+        <br><br>
+
         <tr th:each="offer : ${offers}">
             <td th:text="${offer.product.name}"></td>
             <td th:text="${offer.price}"></td>
@@ -89,6 +92,47 @@
 
     </form>
 </div>
+
+<div th:if="${role} == 'store'">
+    <h2>Available offers</h2>
+
+    <table border="1">
+        <tr>
+            <th>Product</th>
+            <th>Wholesaler</th>
+            <th>Price</th>
+            <th>Available quantity</th>
+            <th>Minimal quantity</th>
+            <th>Buy</th>
+        </tr>
+
+        <a href="/offer/orders">My orders</a>
+        <br><br>
+
+        <tr th:each="offer : ${offers}">
+            <td th:text="${offer.product.name}"></td>
+            <td th:text="${offer.wholesaler.name}"></td>
+            <td th:text="${offer.price}"></td>
+            <td th:text="${offer.available_quantity}"></td>
+            <td th:text="${offer.minimal_quantity}"></td>
+
+            <td>
+                <form th:action="@{/offer/purchase}" method="post">
+                    <input type="hidden" name="offerId" th:value="${offer.id}" />
+
+                    <input type="number"
+                           name="quantity"
+                           min="1"
+                           required />
+
+                    <button type="submit">Buy</button>
+                </form>
+
+            </td>
+        </tr>
+    </table>
+</div>
+
 
 </body>
 </html>

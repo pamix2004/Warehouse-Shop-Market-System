@@ -6,12 +6,14 @@ import com.warehouseManagement.demo.dto.OfferPurchaseDTO;
 import com.warehouseManagement.demo.entity.*;
 import com.warehouseManagement.demo.repo.*;
 import org.springframework.beans.factory.annotation.Autowired;
-
+import java.time.LocalDate;
+import java.math.BigDecimal;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
 @Controller
@@ -38,6 +40,12 @@ public class OfferServiceController {
 
     @Autowired
     private ProductCategoryRepository categoryRepository;
+
+    @Autowired
+    private OrderRepository orderRepository;
+
+    @Autowired
+    private OrderOfferRepository orderOfferRepository;
 
     //We derive ID from a token, if its invalid, we return -1
     public int deriveID(String token){
@@ -78,6 +86,9 @@ public class OfferServiceController {
             Store storeEntity = storeRepository.findByUser_Id(userEntity.getId());
             model.addAttribute("est_name",storeEntity.getName());
             model.addAttribute("address",storeEntity.getAddress());
+
+            // ===== OFERTY DLA SKLEPU =====
+            model.addAttribute("offers", offerRepository.findAll());
         } else if (role.equals("wholesaler")) {
             Wholesaler wsEntity = wholesalerRepository.findByUser_Id(userEntity.getId());
             model.addAttribute("est_name", wsEntity.getName());
@@ -144,44 +155,87 @@ public class OfferServiceController {
         return "redirect:/offer/account";
     }
 
+    @Transactional
     @PostMapping("/purchase")
-    @ResponseBody
-    public ResponseEntity<?> purchaseOffer(
-            @RequestHeader("X-User-Id") int userId,
-            @RequestBody OfferPurchaseDTO dto
-    ) {
-        // 1. Sprawdź czy user to STORE
-        User user = userRepository.findById(userId);
-        if (!"store".equals(user.getRole())) {
-            return ResponseEntity.status(403).body("Only stores can buy offers");
-        }
+    public String purchaseOffer(@RequestHeader("X-User-Id") int userId,
+                                @ModelAttribute OfferPurchaseDTO purchaseDTO, Model model) {
 
-        // 2. Pobierz ofertę
-        Offer offer = offerRepository.findById(dto.getOfferId())
+        User user = userRepository.findById(userId);
+        Store store = storeRepository.findByUser_Id(user.getId());
+
+        Offer offer = offerRepository.findById(purchaseDTO.getOfferId())
                 .orElseThrow(() -> new RuntimeException("Offer not found"));
 
-        // 3. Walidacja ilości
-        if (dto.getQuantity() < offer.getMinimal_quantity()) {
-            return ResponseEntity.badRequest()
-                    .body("Quantity below minimal order amount");
+        int quantity = purchaseDTO.getQuantity();
+
+        // ❌ ZA MAŁA ILOŚĆ
+        if (quantity < offer.getMinimal_quantity()) {
+            model.addAttribute("error", "Quantity below minimal quantity");
+            return "redirect:/offer/account";
         }
 
-        if (dto.getQuantity() > offer.getAvailable_quantity()) {
-            return ResponseEntity.badRequest()
-                    .body("Not enough quantity available");
+        // ❌ ZA DUŻA ILOŚĆ
+        if (quantity > offer.getAvailable_quantity()) {
+            model.addAttribute("error", "Not enough quantity available");
+            return "redirect:/offer/account";
         }
 
-        // 4. ZMNIEJSZ ILOŚĆ
+        // 1️⃣ Aktualizacja oferty
         offer.setAvailable_quantity(
-                offer.getAvailable_quantity() - dto.getQuantity()
+                offer.getAvailable_quantity() - quantity
         );
-
         offerRepository.save(offer);
 
-        return ResponseEntity.ok("Offer purchased successfully");
+        // 2️⃣ Utworzenie zamówienia
+        Order order = new Order();
+        order.setStore(store);
+        order.setOrderDate(LocalDate.now());
+        order.setStatus("CREATED");
+        order.setPrice(
+                BigDecimal.valueOf(offer.getPrice())
+                        .multiply(BigDecimal.valueOf(quantity))
+        );
+
+        orderRepository.save(order);
+
+        // 3️⃣ Powiązanie oferta → zamówienie
+        OrderOffer orderOffer = new OrderOffer();
+        orderOffer.setOrder(order);
+        orderOffer.setOffer(offer);
+        orderOffer.setQuantity(quantity);
+
+        orderOfferRepository.save(orderOffer);
+
+        return "redirect:/offer/account";
     }
 
+    @GetMapping("/orders")
+    public String myOrders(@RequestHeader("X-User-Id") int userId, Model model) {
 
+        User user = userRepository.findById(userId);
+        Store store = storeRepository.findByUser_Id(user.getId());
+
+        model.addAttribute(
+                "orders",
+                orderRepository.findByStore(store)
+        );
+
+        return "orders";
+    }
+
+    @GetMapping("/wholesaler/orders")
+    public String wholesalerOrders(@RequestHeader("X-User-Id") int userId, Model model) {
+
+        User user = userRepository.findById(userId);
+        Wholesaler wholesaler = wholesalerRepository.findByUser_Id(user.getId());
+
+        model.addAttribute(
+                "orderOffers",
+                orderOfferRepository.findByOffer_Wholesaler(wholesaler)
+        );
+
+        return "wholesaler-orders";
+    }
 
 }
 
