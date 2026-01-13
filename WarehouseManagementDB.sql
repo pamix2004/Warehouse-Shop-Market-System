@@ -23,7 +23,7 @@ DROP TABLE IF EXISTS `delivery`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `delivery` (
-  `delivery_id` int NOT NULL,
+  `delivery_id` int NOT NULL AUTO_INCREMENT,
   `order_id` int NOT NULL,
   `departure_date` date DEFAULT NULL,
   `shipped_date` date DEFAULT NULL,
@@ -101,8 +101,30 @@ CREATE TABLE `offer` (
 
 LOCK TABLES `offer` WRITE;
 /*!40000 ALTER TABLE `offer` DISABLE KEYS */;
-INSERT INTO `offer` VALUES (1,209,1,1000,30,30),(2,1,1,1000,50,50);
+INSERT INTO `offer` VALUES (1,209,1,510,30,30),(2,1,1,850,50,50),(3,209,2,70,20,2),(4,1,2,9900,20,10),(5,209,2,17900,70,10),(52,209,2,1500,50,5);
 /*!40000 ALTER TABLE `offer` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `offer_seq`
+--
+
+DROP TABLE IF EXISTS `offer_seq`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `offer_seq` (
+  `next_val` bigint DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `offer_seq`
+--
+
+LOCK TABLES `offer_seq` WRITE;
+/*!40000 ALTER TABLE `offer_seq` DISABLE KEYS */;
+INSERT INTO `offer_seq` VALUES (151);
+/*!40000 ALTER TABLE `offer_seq` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -113,16 +135,16 @@ DROP TABLE IF EXISTS `order_offer`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `order_offer` (
-  `order_product_id` int NOT NULL,
-  `product_id` int NOT NULL,
+  `order_product_id` int NOT NULL AUTO_INCREMENT,
   `order_id` int NOT NULL,
   `quantity` int NOT NULL,
+  `offer_id` int DEFAULT NULL,
   PRIMARY KEY (`order_product_id`),
-  KEY `fk_order_offer_product` (`product_id`),
   KEY `fk_order_offer_order` (`order_id`),
-  CONSTRAINT `fk_order_offer_order` FOREIGN KEY (`order_id`) REFERENCES `orders` (`order_id`),
-  CONSTRAINT `fk_order_offer_product` FOREIGN KEY (`product_id`) REFERENCES `product` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  KEY `fk_order_offer_offer` (`offer_id`),
+  CONSTRAINT `fk_order_offer_offer` FOREIGN KEY (`offer_id`) REFERENCES `offer` (`id`),
+  CONSTRAINT `fk_order_offer_order` FOREIGN KEY (`order_id`) REFERENCES `orders` (`order_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -131,7 +153,30 @@ CREATE TABLE `order_offer` (
 
 LOCK TABLES `order_offer` WRITE;
 /*!40000 ALTER TABLE `order_offer` DISABLE KEYS */;
+INSERT INTO `order_offer` VALUES (1,1,100,NULL),(2,2,200,NULL),(3,3,30,NULL),(4,11,700,5),(5,12,20,4),(6,13,100,5);
 /*!40000 ALTER TABLE `order_offer` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `order_offer_seq`
+--
+
+DROP TABLE IF EXISTS `order_offer_seq`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `order_offer_seq` (
+  `next_val` bigint DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `order_offer_seq`
+--
+
+LOCK TABLES `order_offer_seq` WRITE;
+/*!40000 ALTER TABLE `order_offer_seq` DISABLE KEYS */;
+INSERT INTO `order_offer_seq` VALUES (151);
+/*!40000 ALTER TABLE `order_offer_seq` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -142,18 +187,18 @@ DROP TABLE IF EXISTS `orders`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `orders` (
-  `order_id` int NOT NULL,
+  `order_id` int NOT NULL AUTO_INCREMENT,
   `store_id` int NOT NULL,
   `warehouse_id` int DEFAULT NULL,
   `order_date` date NOT NULL,
-  `status` varchar(50) NOT NULL,
-  `price` decimal(10,2) NOT NULL,
+  `status` varchar(255) NOT NULL,
+  `price` decimal(38,2) NOT NULL,
   PRIMARY KEY (`order_id`),
   KEY `fk_order_store` (`store_id`),
   KEY `fk_order_warehouse` (`warehouse_id`),
   CONSTRAINT `fk_order_store` FOREIGN KEY (`store_id`) REFERENCES `store` (`id`),
   CONSTRAINT `fk_order_warehouse` FOREIGN KEY (`warehouse_id`) REFERENCES `warehouse` (`warehouse_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -162,6 +207,7 @@ CREATE TABLE `orders` (
 
 LOCK TABLES `orders` WRITE;
 /*!40000 ALTER TABLE `orders` DISABLE KEYS */;
+INSERT INTO `orders` VALUES (1,2,NULL,'2026-01-13','CREATED',1000.00),(2,2,NULL,'2026-01-13','CREATED',2000.00),(3,2,NULL,'2026-01-13','CREATED',300.00),(11,2,NULL,'2026-01-13','CREATED',7000.00),(12,2,NULL,'2026-01-13','CREATED',200.00),(13,2,NULL,'2026-01-13','CREATED',1000.00);
 /*!40000 ALTER TABLE `orders` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -173,7 +219,7 @@ DROP TABLE IF EXISTS `payment`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `payment` (
-  `payment_id` int NOT NULL,
+  `payment_id` int NOT NULL AUTO_INCREMENT,
   `order_id` int NOT NULL,
   `status` varchar(50) NOT NULL,
   PRIMARY KEY (`payment_id`),
@@ -214,6 +260,28 @@ LOCK TABLES `producer` WRITE;
 /*!40000 ALTER TABLE `producer` DISABLE KEYS */;
 INSERT INTO `producer` VALUES (100,'Heinz','Warszawa, ul. Nowa, 13');
 /*!40000 ALTER TABLE `producer` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `producer_seq`
+--
+
+DROP TABLE IF EXISTS `producer_seq`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `producer_seq` (
+  `next_val` bigint DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `producer_seq`
+--
+
+LOCK TABLES `producer_seq` WRITE;
+/*!40000 ALTER TABLE `producer_seq` DISABLE KEYS */;
+INSERT INTO `producer_seq` VALUES (1);
+/*!40000 ALTER TABLE `producer_seq` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -274,6 +342,50 @@ INSERT INTO `product_category` VALUES (109,'kechup',235);
 UNLOCK TABLES;
 
 --
+-- Table structure for table `product_category_seq`
+--
+
+DROP TABLE IF EXISTS `product_category_seq`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `product_category_seq` (
+  `next_val` bigint DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `product_category_seq`
+--
+
+LOCK TABLES `product_category_seq` WRITE;
+/*!40000 ALTER TABLE `product_category_seq` DISABLE KEYS */;
+INSERT INTO `product_category_seq` VALUES (1);
+/*!40000 ALTER TABLE `product_category_seq` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `product_seq`
+--
+
+DROP TABLE IF EXISTS `product_seq`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `product_seq` (
+  `next_val` bigint DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `product_seq`
+--
+
+LOCK TABLES `product_seq` WRITE;
+/*!40000 ALTER TABLE `product_seq` DISABLE KEYS */;
+INSERT INTO `product_seq` VALUES (1);
+/*!40000 ALTER TABLE `product_seq` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `product_type`
 --
 
@@ -295,6 +407,28 @@ LOCK TABLES `product_type` WRITE;
 /*!40000 ALTER TABLE `product_type` DISABLE KEYS */;
 INSERT INTO `product_type` VALUES (235,'płyn');
 /*!40000 ALTER TABLE `product_type` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `product_type_seq`
+--
+
+DROP TABLE IF EXISTS `product_type_seq`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `product_type_seq` (
+  `next_val` bigint DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `product_type_seq`
+--
+
+LOCK TABLES `product_type_seq` WRITE;
+/*!40000 ALTER TABLE `product_type_seq` DISABLE KEYS */;
+INSERT INTO `product_type_seq` VALUES (1);
+/*!40000 ALTER TABLE `product_type_seq` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -321,8 +455,30 @@ CREATE TABLE `store` (
 
 LOCK TABLES `store` WRITE;
 /*!40000 ALTER TABLE `store` DISABLE KEYS */;
-INSERT INTO `store` VALUES (1,'Biedronka',2,'ul. Warszawska, 17. Kraków');
+INSERT INTO `store` VALUES (1,'Biedronka',2,'ul. Warszawska, 17. Kraków'),(2,'Store',54,'ul. Store, Krakow');
 /*!40000 ALTER TABLE `store` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `store_seq`
+--
+
+DROP TABLE IF EXISTS `store_seq`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `store_seq` (
+  `next_val` bigint DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `store_seq`
+--
+
+LOCK TABLES `store_seq` WRITE;
+/*!40000 ALTER TABLE `store_seq` DISABLE KEYS */;
+INSERT INTO `store_seq` VALUES (101);
+/*!40000 ALTER TABLE `store_seq` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -349,8 +505,30 @@ CREATE TABLE `users` (
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (2,'qwerty2name@gmail.com','$2a$10$WyVd2ShX6JG6mGfs2lqXCuzHNcgJPdno4NQVhmoJw61ShHOyyti0W',_binary '','store'),(52,'mik.karaman.2006@gmail.com','$2a$10$1CeyzapkTvC7UY0fMTJtcOrRtNTRjhdapoTA0VQh5miVZlty0rwMa',_binary '','wholesaler');
+INSERT INTO `users` VALUES (1,'wholesaler1@gmail.com','$2a$10$qvusPWzHhDmTKkllrdR/zervQ5tpJMNO24PunT1h3T48Y4mXUBTOa',_binary '','wholesaler'),(2,'qwerty2name@gmail.com','$2a$10$WyVd2ShX6JG6mGfs2lqXCuzHNcgJPdno4NQVhmoJw61ShHOyyti0W',_binary '','store'),(3,'wholesaler2@gmail.com','$2a$10$DMjfr6s417VNjUf4Uy2mg./TLkzam58IzwpV5K1Hbiv.4D4WEv90O',_binary '','wholesaler'),(52,'mik.karaman.2006@gmail.com','$2a$10$1CeyzapkTvC7UY0fMTJtcOrRtNTRjhdapoTA0VQh5miVZlty0rwMa',_binary '','wholesaler'),(53,'store2@gmail.com','$2a$10$6zvp7ltQe2IQpijhxLTfi.DWhwWTQGzn8v7JuB5G2uPPIiHwwunzK',_binary '','store'),(54,'store@gmail.com','$2a$10$BsXedosDj6WpbpdUAydyv.5AX5impu5zl/Zk2K6KE7YXS34.bDdcu',_binary '','store');
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `users_seq`
+--
+
+DROP TABLE IF EXISTS `users_seq`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `users_seq` (
+  `next_val` bigint DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `users_seq`
+--
+
+LOCK TABLES `users_seq` WRITE;
+/*!40000 ALTER TABLE `users_seq` DISABLE KEYS */;
+INSERT INTO `users_seq` VALUES (151);
+/*!40000 ALTER TABLE `users_seq` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -403,8 +581,30 @@ CREATE TABLE `wholesaler` (
 
 LOCK TABLES `wholesaler` WRITE;
 /*!40000 ALTER TABLE `wholesaler` DISABLE KEYS */;
-INSERT INTO `wholesaler` VALUES (1,52,'Hurtownia XYZ','ul. Szlak, 20. Kraków');
+INSERT INTO `wholesaler` VALUES (1,52,'Hurtownia XYZ','ul. Szlak, 20. Kraków'),(2,3,'Wholesaler2','ul. skl 1, Krakow');
 /*!40000 ALTER TABLE `wholesaler` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `wholesaler_seq`
+--
+
+DROP TABLE IF EXISTS `wholesaler_seq`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `wholesaler_seq` (
+  `next_val` bigint DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `wholesaler_seq`
+--
+
+LOCK TABLES `wholesaler_seq` WRITE;
+/*!40000 ALTER TABLE `wholesaler_seq` DISABLE KEYS */;
+INSERT INTO `wholesaler_seq` VALUES (101);
+/*!40000 ALTER TABLE `wholesaler_seq` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -416,4 +616,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-12-25  1:40:00
+-- Dump completed on 2026-01-13  5:47:57
