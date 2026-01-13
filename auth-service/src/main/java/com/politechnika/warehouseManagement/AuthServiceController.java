@@ -54,13 +54,9 @@ public class AuthServiceController {
         return "login"; // resolves to login.jsp or login.html
     }
 
-    //WE WANT IT TO BE REST SO WE USE @ResponseBody
-    /**
-     *
-     * */
+
     @PostMapping("/login")
-    @ResponseBody
-    public ResponseEntity<?> login(@RequestParam("email") String email,
+    public String login(@RequestParam("email") String email,
                                    @RequestParam("password") String password,
                                    HttpServletResponse response) {
         try {
@@ -69,6 +65,7 @@ public class AuthServiceController {
             );
 
              CustomUserDetails cud = (CustomUserDetails) auth.getPrincipal();
+
 
             RestTemplate restTemplate = new RestTemplate();
             String token = restTemplate.getForObject(
@@ -86,14 +83,14 @@ public class AuthServiceController {
 
             response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 
-            return ResponseEntity.ok("Logged in");
+            return "redirect:/offer/account";
 
         } catch (org.springframework.security.authentication.DisabledException e) {
-            return ResponseEntity.status(403).body("Account not verified/active.");
+            return "redirect:/auth/login?error=Account not verified/active.";
         } catch (org.springframework.security.authentication.BadCredentialsException e) {
-            return ResponseEntity.status(403).body("Invalid username or password.");
+            return "redirect:/auth/login?error=Invalid username or password.";
         } catch (org.springframework.security.core.AuthenticationException e) {
-            return ResponseEntity.status(403).body("Authentication failed.");
+            return "redirect:/auth/login?error=Authentication failed.";
         }
     }
 

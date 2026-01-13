@@ -5,10 +5,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
 import org.springframework.http.HttpCookie;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Mono;
+
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 @Component
 public class AuthenticationFilter extends AbstractGatewayFilterFactory<AuthenticationFilter.Config> {
@@ -23,6 +29,16 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
         this.webClient = webClientBuilder.baseUrl("http://localhost:8085").build();
     }
 
+
+    private Mono<Void> redirectToLogin(ServerWebExchange exchange, String message) {
+        String redirectUrl = "/auth/login?information=" + URLEncoder.encode(message, StandardCharsets.UTF_8);
+
+        exchange.getResponse().setStatusCode(HttpStatus.FOUND); // 302
+        exchange.getResponse().getHeaders().set(HttpHeaders.LOCATION, redirectUrl);
+
+        return exchange.getResponse().setComplete();
+    }
+
     @Override
     public GatewayFilter apply(Config config) {
         System.out.println("Gateway teraz filtruje");
@@ -35,8 +51,7 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
 
             HttpCookie authCookie = exchange.getRequest().getCookies().getFirst("auth_token");
             if (authCookie == null) {
-                exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-                return exchange.getResponse().setComplete();
+                return redirectToLogin(exchange, "You need to log in");
             }
 
             String token = authCookie.getValue();
@@ -50,23 +65,22 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
                     .bodyToMono(TokenValidationResponse.class)
                     .flatMap(body -> {
                         if (body == null || !body.isValid()) {
-                            exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-                            return exchange.getResponse().setComplete();
+                            return redirectToLogin(exchange, "You need to log in");
                         }
 
                         String userId = String.valueOf(body.getUserId());
 
                         ServerHttpRequest mutatedRequest = exchange.getRequest()
                                 .mutate()
-                                .header("X-User-Id", userId)
+                                .headers(h -> {
+                                    h.remove("X-User-Id");      // remove any client-sent spoofed one
+                                    h.set("X-User-Id", userId); // set your trusted one
+                                })
                                 .build();
 
                         return chain.filter(exchange.mutate().request(mutatedRequest).build());
                     })
-                    .onErrorResume(err -> {
-                        exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-                        return exchange.getResponse().setComplete();
-                    });
+                    .onErrorResume(err -> redirectToLogin(exchange, "You need to log in"));
         };
     }
 

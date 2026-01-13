@@ -37,6 +37,10 @@
                 <span th:text="${param.successMessage}"></span>
             </div>
 
+            <div th:if="${param.information}" class="alert alert-primary text-center" role="alert">
+                <span th:text="${param.information}"></span>
+            </div>
+
             <!-- Form -->
             <form th:action="@{/auth/login}" method="post">
                 <div class="mb-3">
