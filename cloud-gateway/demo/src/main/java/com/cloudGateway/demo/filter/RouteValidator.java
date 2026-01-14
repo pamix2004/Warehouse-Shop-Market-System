@@ -18,7 +18,9 @@ public class RouteValidator {
             "/jwt/createJWTToken",
             "/jwt/verifyJWTToken",
             "/email/sendEmail",
-            "/eureka"
+            "/eureka",
+            "/offer/testCSS",
+            "/css/"
     );
 
     public Predicate<ServerHttpRequest> isSecured =

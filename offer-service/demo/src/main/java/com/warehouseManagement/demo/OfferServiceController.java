@@ -68,11 +68,7 @@ public class OfferServiceController {
         }
     }
 
-    @GetMapping("/test")
-    @ResponseBody
-    public String account(@RequestHeader("X-User-Id") int userId) {
-        return String.valueOf(userId);
-    }
+
 
     @GetMapping("/account")
     public String account(@RequestHeader("X-User-Id") int userId, Model model){
@@ -108,6 +104,8 @@ public class OfferServiceController {
 
         return "account";
 }
+
+
 
 
     @PostMapping("/account/add")
@@ -153,6 +151,11 @@ public class OfferServiceController {
         offerRepository.save(offer);
 
         return "redirect:/offer/account";
+    }
+
+    @GetMapping("/testCSS")
+    public String TestCSS(){
+        return "test";
     }
 
     @Transactional

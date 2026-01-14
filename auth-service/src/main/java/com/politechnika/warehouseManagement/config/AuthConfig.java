@@ -27,7 +27,8 @@ public class AuthConfig {
                                 "/auth/register","/auth/verify","/auth/login","/auth/validateToken","/auth/cookieTest",
                                 "/**/*.css",
                                 "/**/*.html",
-                                "/**/*.js"
+                                "/**/*.js",
+                                "/css/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
