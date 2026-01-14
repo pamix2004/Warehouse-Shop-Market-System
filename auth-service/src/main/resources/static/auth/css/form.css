@@ -27,6 +27,7 @@ body {
     justify-content: center; /* Horizontal Center */
     align-items: center;     /* Vertical Center */
     padding: 1rem;           /* Padding prevents card touching phone edges */
+    background-color:yellow;
 }
 
 /*
