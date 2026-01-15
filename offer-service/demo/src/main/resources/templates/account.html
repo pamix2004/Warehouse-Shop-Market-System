@@ -2,13 +2,14 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Account</title>
+    <link rel="stylesheet" th:href="@{/offer/css/offers.css}">
 </head>
 <body>
 <div>
-    hello <span th:text="${email}"></span>, your id is:
+    Hello, <span th:text="${email}"></span>. Your id is:
     <span th:text="${id}"></span>
-    <br>you are a <span th:text="${role}"></span> named <span th:text="${est_name}"></span>
+    <br>You are a <span th:text="${role}"></span> named <span th:text="${est_name}"></span>
     located on: <span th:text="${address}"></span>
 </div>
 
