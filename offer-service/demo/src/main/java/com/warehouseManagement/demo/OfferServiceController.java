@@ -171,25 +171,21 @@ public class OfferServiceController {
 
         int quantity = purchaseDTO.getQuantity();
 
-        // ❌ ZA MAŁA ILOŚĆ
         if (quantity < offer.getMinimal_quantity()) {
             model.addAttribute("error", "Quantity below minimal quantity");
             return "redirect:/offer/account";
         }
 
-        // ❌ ZA DUŻA ILOŚĆ
         if (quantity > offer.getAvailable_quantity()) {
             model.addAttribute("error", "Not enough quantity available");
             return "redirect:/offer/account";
         }
 
-        // 1️⃣ Aktualizacja oferty
         offer.setAvailable_quantity(
                 offer.getAvailable_quantity() - quantity
         );
         offerRepository.save(offer);
 
-        // 2️⃣ Utworzenie zamówienia
         Order order = new Order();
         order.setStore(store);
         order.setOrderDate(LocalDate.now());
@@ -201,7 +197,6 @@ public class OfferServiceController {
 
         orderRepository.save(order);
 
-        // 3️⃣ Powiązanie oferta → zamówienie
         OrderOffer orderOffer = new OrderOffer();
         orderOffer.setOrder(order);
         orderOffer.setOffer(offer);
@@ -239,6 +234,66 @@ public class OfferServiceController {
 
         return "wholesaler-orders";
     }
+
+    @PostMapping("/wholesaler/orders/status")
+    public String updateOrderStatus(@RequestHeader("X-User-Id") int userId,
+                                    @RequestParam int orderId,
+                                    @RequestParam String status) {
+
+        User user = userRepository.findById(userId);
+        Wholesaler wholesaler = wholesalerRepository.findByUser_Id(user.getId());
+
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+
+        // użytkownik może edytować tylko swoje zamówienia
+        boolean belongsToWholesaler = orderOfferRepository
+                .findByOrder(order)
+                .stream()
+                .anyMatch(orderOffer ->
+                        orderOffer.getOffer()
+                                .getWholesaler()
+                                .getId() == wholesaler.getId()
+                );
+
+
+        if (!belongsToWholesaler) {
+            return "redirect:/offer/wholesaler/orders";
+        }
+
+        order.setStatus(status);
+        orderRepository.save(order);
+
+        return "redirect:/offer/wholesaler/orders";
+    }
+
+
+    @GetMapping("/orders/{orderId}")
+    public String orderDetails(@PathVariable int orderId,
+                               @RequestHeader("X-User-Id") int userId,
+                               Model model) {
+
+        User user = userRepository.findById(userId);
+        Store store = storeRepository.findByUser_Id(user.getId());
+
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+
+        // sklep widzi tylko swoje zamówienia
+        if (order.getStore().getId() != store.getId()) {
+            return "redirect:/offer/orders";
+        }
+
+        model.addAttribute("order", order);
+        model.addAttribute(
+                "orderOffers",
+                orderOfferRepository.findByOrder(order)
+        );
+
+        return "order-details";
+    }
+
+
 
 }
 

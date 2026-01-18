@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
   <title>My orders</title>
-    <link rel="stylesheet" th:href="@{/offer/css/offers.css}">
+  <link rel="stylesheet" th:href="@{/offer/css/offers.css}">
 </head>
 <body>
 
@@ -14,6 +14,7 @@
     <th>Date</th>
     <th>Status</th>
     <th>Total price</th>
+    <th>Details</th>
   </tr>
 
   <tr th:each="order : ${orders}">
@@ -21,7 +22,13 @@
     <td th:text="${order.orderDate}"></td>
     <td th:text="${order.status}"></td>
     <td th:text="${order.price}"></td>
+    <td>
+      <a th:href="@{/offer/orders/{id}(id=${order.orderId})}">
+        <button type="button">Details</button>
+      </a>
+    </td>
   </tr>
+
 </table>
 
 <a href="/offer/account">Back</a>

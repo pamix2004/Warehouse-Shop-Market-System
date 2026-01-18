@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
   <title>Orders for my offers</title>
-    <link rel="stylesheet" th:href="@{/offer/css/offers.css}">
+  <link rel="stylesheet" th:href="@{/offer/css/offers.css}">
 </head>
 <body>
 
@@ -16,15 +16,50 @@
     <th>Quantity</th>
     <th>Date</th>
     <th>Status</th>
+    <th>Change status</th>
   </tr>
 
-  <tr th:each="oo : ${orderOffers}">
-    <td th:text="${oo.order.orderId}"></td>
-    <td th:text="${oo.order.store.name}"></td>
-    <td th:text="${oo.offer.product.name}"></td>
-    <td th:text="${oo.quantity}"></td>
-    <td th:text="${oo.order.orderDate}"></td>
-    <td th:text="${oo.order.status}"></td>
+  <tr th:each="orderOffer : ${orderOffers}">
+    <td th:text="${orderOffer.order.orderId}"></td>
+    <td th:text="${orderOffer.order.store.name}"></td>
+    <td th:text="${orderOffer.offer.product.name}"></td>
+    <td th:text="${orderOffer.quantity}"></td>
+    <td th:text="${orderOffer.order.orderDate}"></td>
+
+    <!-- aktualny status -->
+    <td th:text="${orderOffer.order.status}"></td>
+
+    <!-- zmiana statusu -->
+    <td>
+      <form th:action="@{/offer/wholesaler/orders/status}"
+            method="post">
+
+        <input type="hidden"
+               name="orderId"
+               th:value="${orderOffer.order.orderId}" />
+
+        <select name="status">
+          <option value="CREATED"
+                  th:selected="${orderOffer.order.status == 'CREATED'}">
+            CREATED
+          </option>
+          <option value="IN_PROGRESS"
+                  th:selected="${orderOffer.order.status == 'IN_PROGRESS'}">
+            IN_PROGRESS
+          </option>
+          <option value="SHIPPED"
+                  th:selected="${orderOffer.order.status == 'SHIPPED'}">
+            SHIPPED
+          </option>
+          <option value="DELIVERED"
+                  th:selected="${orderOffer.order.status == 'DELIVERED'}">
+            DELIVERED
+          </option>
+        </select>
+
+        <button type="submit">Update</button>
+      </form>
+    </td>
   </tr>
 </table>
 

@@ -11,4 +11,5 @@ public interface OrderOfferRepository extends JpaRepository<OrderOffer, Integer>
 
     List<OrderOffer> findByOffer_Wholesaler(Wholesaler wholesaler);
     List<OrderOffer> findByOrder(Order order);
+
 }
