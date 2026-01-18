@@ -14,13 +14,16 @@ public class RouteValidator {
             "/auth/validateToken",
             "/auth/login",
             "/auth/verify",
+            "/auth/logout",
             "/auth/cookieTest",
             "/jwt/createJWTToken",
             "/jwt/verifyJWTToken",
             "/email/sendEmail",
             "/eureka",
             "/offer/testCSS",
-            "/css/"
+            "/css/",
+            "/js/**",
+            "/**/*.js"
     );
 
     public Predicate<ServerHttpRequest> isSecured =

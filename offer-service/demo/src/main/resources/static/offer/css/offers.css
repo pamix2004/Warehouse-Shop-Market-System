@@ -14,6 +14,8 @@ html, body {
     color: #333;
 }
 
+
+
 /*
    2. Page Container
    (Works even without extra wrapper divs)
@@ -21,6 +23,8 @@ html, body {
 body {
     padding: 2rem 1rem;
 }
+
+
 
 /* Center content and keep readable width */
 body > div,

@@ -28,6 +28,8 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.Duration;
+
 import static org.hibernate.cfg.JdbcSettings.URL;
 
 
@@ -50,7 +52,8 @@ public class AuthServiceController {
     private AuthenticationManager authenticationManager;
 
     @GetMapping("/login")
-    public String loginPage() {
+    public String loginPage(@CookieValue(value = "auth_token", required = false) String authToken, Model model) {
+        model.addAttribute("isAuthenticated", authToken != null);
         return "login"; // resolves to login.jsp or login.html
     }
 
@@ -76,9 +79,9 @@ public class AuthServiceController {
 
             //  set cookie ONLY after successful auth + token generation
             ResponseCookie cookie = ResponseCookie.from("auth_token", token)
-                    .httpOnly(true)
                     .sameSite("Lax")
                     .path("/")
+                    .maxAge((Duration.ofHours(1)))
                     .build();
 
             response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
@@ -92,6 +95,23 @@ public class AuthServiceController {
         } catch (org.springframework.security.core.AuthenticationException e) {
             return "redirect:/auth/login?error=Authentication failed.";
         }
+    }
+
+    /**
+     * Function that removes the auth_token and redirects to /auth/login
+     * */
+    @PostMapping("/logout")
+    public String logout(HttpServletResponse response) {
+
+        ResponseCookie deleteCookie = ResponseCookie.from("auth_token", "")
+                .httpOnly(true)
+                .path("/")      // MUST match original
+                .maxAge(0)      // DELETE
+                .build();
+
+        response.setHeader(HttpHeaders.SET_COOKIE, deleteCookie.toString());
+
+        return "redirect:/auth/login";
     }
 
     /**
@@ -145,7 +165,8 @@ public class AuthServiceController {
 
 
     @GetMapping("/register")
-    public String getRegister(Model model){
+    public String getRegister(@CookieValue(value = "auth_token", required = false) String authToken, Model model){
+        model.addAttribute("isAuthenticated", authToken != null);
         return  "register";
     }
 

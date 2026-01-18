@@ -24,7 +24,7 @@ public class AuthConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/auth/register","/auth/verify","/auth/login","/auth/validateToken","/auth/cookieTest",
+                                "/auth/register","/auth/verify","/auth/login","/auth/validateToken","/auth/cookieTest","/auth/logout",
                                 "/**/*.css",
                                 "/**/*.html",
                                 "/**/*.js",

@@ -33,7 +33,7 @@ public class JwtServiceRestController {
         return Jwts.builder()
                 .subject(String.valueOf(userId))
                 .issuedAt(Date.from(now))
-                .expiration(Date.from(now.plus(Duration.ofMinutes(15))))
+                .expiration(Date.from(now.plus(Duration.ofMinutes(60))))
                 .signWith(key, Jwts.SIG.HS256)
                 .compact();
     }
