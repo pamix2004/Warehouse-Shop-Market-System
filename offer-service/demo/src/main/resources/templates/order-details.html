@@ -30,8 +30,30 @@
         <td th:text="${orderOffer.quantity}"></td>
         <td th:text="${orderOffer.offer.price}"></td>
         <td th:text="${orderOffer.quantity * orderOffer.offer.price}"></td>
+        <td>
+            <form th:action="@{/offer/orders/item/remove}" method="post"
+                  th:if="${order.status == 'CREATED'}">
+
+                <input type="hidden"
+                       name="orderOfferId"
+                       th:value="${orderOffer.orderOfferId}" />
+
+                <button type="submit">Remove</button>
+            </form>
+        </td>
     </tr>
 </table>
+
+<form th:if="${order.status == 'CREATED'}"
+      th:action="@{/offer/orders/finalize}"
+      method="post">
+
+    <input type="hidden"
+           name="orderId"
+           th:value="${order.orderId}" />
+
+    <button type="submit">Place order</button>
+</form>
 
 <br>
 <a href="/offer/orders">Back to orders</a>

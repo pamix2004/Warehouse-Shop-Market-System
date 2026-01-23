@@ -24,7 +24,7 @@
     located on: <span th:text="${address}"></span>
 </div>
 
-<div th:if="${role} == 'wholesaler'">
+<div th:if="${role == 'wholesaler'}">
     <h2>My offers</h2>
 
     <table border="1">
@@ -105,8 +105,41 @@
     </form>
 </div>
 
-<div th:if="${role} == 'store'">
+<div th:if="${role == 'store'}">
+
+    <div th:if="${basketOrder != null and basketItems != null and !#lists.isEmpty(basketItems)}">
+    <h2>Basket</h2>
+
+        <p>
+            <b>Wholesaler:</b>
+            <span th:text="${basketItems[0].offer.wholesaler.name}"></span>
+        </p>
+
+        <table border="1">
+            <tr>
+                <th>Product</th>
+                <th>Quantity</th>
+                <th>Unit price</th>
+            </tr>
+
+            <tr th:each="item : ${basketItems}">
+            <td th:text="${item.offer.product.name}"></td>
+                <td th:text="${item.quantity}"></td>
+                <td th:text="${item.offer.price}"></td>
+            </tr>
+        </table>
+
+        <a th:href="@{/offer/orders/{id}(id=${basketOrder.orderId})}">
+        Go to basket details
+        </a>
+
+        <hr>
+    </div>
+
     <h2>Available offers</h2>
+
+    <a href="/offer/orders">My orders</a>
+    <br><br>
 
     <table border="1">
         <tr>
@@ -118,9 +151,6 @@
             <th>Buy</th>
         </tr>
 
-        <a href="/offer/orders">My orders</a>
-        <br><br>
-
         <tr th:each="offer : ${offers}">
             <td th:text="${offer.product.name}"></td>
             <td th:text="${offer.wholesaler.name}"></td>
@@ -130,7 +160,9 @@
 
             <td>
                 <form th:action="@{/offer/purchase}" method="post">
-                    <input type="hidden" name="offerId" th:value="${offer.id}" />
+                    <input type="hidden"
+                           name="offerId"
+                           th:value="${offer.id}" />
 
                     <input type="number"
                            name="quantity"
@@ -139,11 +171,12 @@
 
                     <button type="submit">Buy</button>
                 </form>
-
             </td>
         </tr>
     </table>
+
 </div>
+
 
 </body>
 </html>

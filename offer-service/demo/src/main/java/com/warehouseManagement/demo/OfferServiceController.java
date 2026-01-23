@@ -83,8 +83,18 @@ public class OfferServiceController {
             model.addAttribute("est_name",storeEntity.getName());
             model.addAttribute("address",storeEntity.getAddress());
 
-            // ===== OFERTY DLA SKLEPU =====
             model.addAttribute("offers", offerRepository.findAll());
+
+            Order activeOrder =
+                    orderRepository.findFirstByStoreAndStatus(storeEntity, "CREATED");
+
+            if (activeOrder != null) {
+                model.addAttribute("basketOrder", activeOrder);
+                model.addAttribute(
+                        "basketItems",
+                        orderOfferRepository.findByOrder(activeOrder)
+                );
+            }
         } else if (role.equals("wholesaler")) {
             Wholesaler wsEntity = wholesalerRepository.findByUser_Id(userEntity.getId());
             model.addAttribute("est_name", wsEntity.getName());
@@ -161,7 +171,8 @@ public class OfferServiceController {
     @Transactional
     @PostMapping("/purchase")
     public String purchaseOffer(@RequestHeader("X-User-Id") int userId,
-                                @ModelAttribute OfferPurchaseDTO purchaseDTO, Model model) {
+                                @ModelAttribute OfferPurchaseDTO purchaseDTO,
+                                Model model) {
 
         User user = userRepository.findById(userId);
         Store store = storeRepository.findByUser_Id(user.getId());
@@ -171,41 +182,68 @@ public class OfferServiceController {
 
         int quantity = purchaseDTO.getQuantity();
 
-        if (quantity < offer.getMinimal_quantity()) {
-            model.addAttribute("error", "Quantity below minimal quantity");
-            return "redirect:/offer/account";
-        }
-
-        if (quantity > offer.getAvailable_quantity()) {
-            model.addAttribute("error", "Not enough quantity available");
-            return "redirect:/offer/account";
-        }
-
         offer.setAvailable_quantity(
                 offer.getAvailable_quantity() - quantity
         );
         offerRepository.save(offer);
 
-        Order order = new Order();
-        order.setStore(store);
-        order.setOrderDate(LocalDate.now());
-        order.setStatus("CREATED");
-        order.setPrice(
-                BigDecimal.valueOf(offer.getPrice())
-                        .multiply(BigDecimal.valueOf(quantity))
-        );
+        Order order = orderRepository.findFirstByStoreAndStatus(store, "CREATED");
 
-        orderRepository.save(order);
+        if (order == null) {
+            order = new Order();
+            order.setStore(store);
+            order.setOrderDate(LocalDate.now());
+            order.setStatus("CREATED");
+            order.setPrice(BigDecimal.ZERO);
+            orderRepository.save(order);
+        }
 
-        OrderOffer orderOffer = new OrderOffer();
-        orderOffer.setOrder(order);
-        orderOffer.setOffer(offer);
-        orderOffer.setQuantity(quantity);
+        boolean differentWholesaler = orderOfferRepository
+                .findByOrder(order)
+                .stream()
+                .anyMatch(orderOffer ->
+                        orderOffer.getOffer()
+                                .getWholesaler()
+                                .getId() != offer.getWholesaler().getId()
+                );
+
+        if (differentWholesaler) {
+            model.addAttribute(
+                    "error",
+                    "You can only order products from one wholesaler at a time."
+            );
+            return "redirect:/offer/account";
+        }
+
+        // DODAJEMY PRODUKT DO ZAMÓWIENIA
+        OrderOffer orderOffer =
+                orderOfferRepository.findByOrderAndOffer(order, offer);
+
+        if (orderOffer == null) {
+            orderOffer = new OrderOffer();
+            orderOffer.setOrder(order);
+            orderOffer.setOffer(offer);
+            orderOffer.setQuantity(quantity);
+        } else {
+            orderOffer.setQuantity(
+                    orderOffer.getQuantity() + quantity
+            );
+        }
 
         orderOfferRepository.save(orderOffer);
 
+
+        // AKTUALIZACJA CENY ZAMÓWIENIA
+        BigDecimal itemPrice = BigDecimal
+                .valueOf(offer.getPrice())
+                .multiply(BigDecimal.valueOf(quantity));
+
+        order.setPrice(order.getPrice().add(itemPrice));
+        orderRepository.save(order);
+
         return "redirect:/offer/account";
     }
+
 
     @GetMapping("/orders")
     public String myOrders(@RequestHeader("X-User-Id") int userId, Model model) {
@@ -235,6 +273,18 @@ public class OfferServiceController {
         return "wholesaler-orders";
     }
 
+    private boolean isValidStatusChange(String current, String next) {
+
+        return switch (current) {
+            case "CREATED" -> false;
+            case "ORDERED" -> next.equals("IN_PROGRESS");
+            case "IN_PROGRESS" -> next.equals("SHIPPED");
+            case "SHIPPED" -> next.equals("DELIVERED");
+            default -> false;
+        };
+    }
+
+
     @PostMapping("/wholesaler/orders/status")
     public String updateOrderStatus(@RequestHeader("X-User-Id") int userId,
                                     @RequestParam int orderId,
@@ -261,6 +311,10 @@ public class OfferServiceController {
             return "redirect:/offer/wholesaler/orders";
         }
 
+        if (!isValidStatusChange(order.getStatus(), status)) {
+            return "redirect:/offer/wholesaler/orders";
+        }
+
         order.setStatus(status);
         orderRepository.save(order);
 
@@ -279,7 +333,6 @@ public class OfferServiceController {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
 
-        // sklep widzi tylko swoje zamówienia
         if (order.getStore().getId() != store.getId()) {
             return "redirect:/offer/orders";
         }
@@ -293,8 +346,72 @@ public class OfferServiceController {
         return "order-details";
     }
 
+    @PostMapping("/orders/item/remove")
+    @Transactional
+    public String removeItemFromBasket(@RequestHeader("X-User-Id") int userId,
+                                       @RequestParam int orderOfferId) {
 
+        User user = userRepository.findById(userId);
+        Store store = storeRepository.findByUser_Id(user.getId());
 
+        OrderOffer orderOffer = orderOfferRepository.findById(orderOfferId)
+                .orElseThrow(() -> new RuntimeException("Order item not found"));
+
+        Order order = orderOffer.getOrder();
+
+        if (order.getStore().getId() != store.getId()) {
+            return "redirect:/offer/orders";
+        }
+
+        if (!"CREATED".equals(order.getStatus())) {
+            return "redirect:/offer/orders/" + order.getOrderId();
+        }
+
+        BigDecimal itemPrice = BigDecimal
+                .valueOf(orderOffer.getOffer().getPrice())
+                .multiply(BigDecimal.valueOf(orderOffer.getQuantity()));
+
+        order.setPrice(order.getPrice().subtract(itemPrice));
+
+        orderOfferRepository.delete(orderOffer);
+
+        if (orderOfferRepository.findByOrder(order).isEmpty()) {
+            orderRepository.delete(order);
+            return "redirect:/offer/account";
+        }
+
+        orderRepository.save(order);
+
+        return "redirect:/offer/orders/" + order.getOrderId();
+    }
+
+    @PostMapping("/orders/finalize")
+    public String finalizeOrder(@RequestHeader("X-User-Id") int userId,
+                                @RequestParam int orderId) {
+
+        User user = userRepository.findById(userId);
+        Store store = storeRepository.findByUser_Id(user.getId());
+
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+
+        if (order.getStore().getId() != store.getId()) {
+            return "redirect:/offer/orders";
+        }
+
+        if (!"CREATED".equals(order.getStatus())) {
+            return "redirect:/offer/orders/" + orderId;
+        }
+
+        if (orderOfferRepository.findByOrder(order).isEmpty()) {
+            return "redirect:/offer/orders/" + orderId;
+        }
+
+        order.setStatus("ORDERED");
+        orderRepository.save(order);
+
+        return "redirect:/offer/account";
+    }
 }
 
 
