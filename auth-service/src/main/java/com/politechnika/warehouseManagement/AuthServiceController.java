@@ -1,8 +1,6 @@
 package com.politechnika.warehouseManagement;
 
 
-
-
 import com.politechnika.warehouseManagement.dto.AuthRequest;
 import com.politechnika.warehouseManagement.dto.TokenValidationResponse;
 import com.politechnika.warehouseManagement.entity.Store;
@@ -13,6 +11,8 @@ import com.politechnika.warehouseManagement.repo.UserRepository;
 import com.politechnika.warehouseManagement.repo.WholesalerRepository;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.client.ServiceInstance;
+import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
@@ -29,6 +29,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.Duration;
+import java.util.List;
 
 import static org.hibernate.cfg.JdbcSettings.URL;
 
@@ -51,6 +52,19 @@ public class AuthServiceController {
     @Autowired
     private AuthenticationManager authenticationManager;
 
+    @Autowired
+    private DiscoveryClient discoveryClient;
+
+    public String getJWTServiceUrl() {
+        // Get all instances of "jwt-service"
+        List<ServiceInstance> instances = discoveryClient.getInstances("jwt-service");
+        if (instances != null && !instances.isEmpty()) {
+            // Return the URI of the first instance
+            return instances.get(0).getUri().toString(); // e.g., http://192.168.1.10:8080
+        }
+        return null;
+    }
+
     @GetMapping("/login")
     public String loginPage(@CookieValue(value = "auth_token", required = false) String authToken, Model model) {
         model.addAttribute("isAuthenticated", authToken != null);
@@ -72,7 +86,7 @@ public class AuthServiceController {
 
             RestTemplate restTemplate = new RestTemplate();
             String token = restTemplate.getForObject(
-                    "http://localhost:8085/jwt/createJWTToken?id={id}",
+                    getJWTServiceUrl()+"/jwt/createJWTToken?id={id}",
                     String.class,
                     cud.getID()
             );
@@ -126,7 +140,7 @@ public class AuthServiceController {
             RestTemplate restTemplate = new RestTemplate();
 
             ResponseEntity<Integer> resp = restTemplate.postForEntity(
-                    "http://localhost:8085/jwt/verifyJWTToken?token={token}",
+                    getJWTServiceUrl()+"/jwt/verifyJWTToken?token={token}",
                     null,
                     Integer.class,
                     token
@@ -245,7 +259,7 @@ public class AuthServiceController {
             //User jwt-service
             RestTemplate restTemplate = new RestTemplate();
             System.out.println("Testing rest template");
-            ResponseEntity<Integer> resp = restTemplate.postForEntity("http://localhost:8085/jwt/verifyJWTToken?token={token}",null,Integer.class,token);
+            ResponseEntity<Integer> resp = restTemplate.postForEntity(getJWTServiceUrl()+"/jwt/verifyJWTToken?token={token}",null,Integer.class,token);
             int id = Integer.parseInt((String.valueOf(resp.getBody())));
             int statusCode = resp.getStatusCode().value();
             System.out.println("status=" + statusCode + " body=" + id);
@@ -290,7 +304,7 @@ public class AuthServiceController {
         //String token = jwtService.createVerificationToken(id);
         RestTemplate restTemplate = new RestTemplate();
         String token = restTemplate.getForObject(
-                "http://localhost:8085/jwt/createJWTToken?id={id}",
+                getJWTServiceUrl()+"/jwt/createJWTToken?id={id}",
                 String.class,
                 id
         );
