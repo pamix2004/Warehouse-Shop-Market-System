@@ -65,6 +65,18 @@ public class AuthServiceController {
         return null;
     }
 
+    public String getEmailServiceUrl() {
+        // Get all instances of "email-service"
+        List<ServiceInstance> instances = discoveryClient.getInstances("email-service");
+        if (instances != null && !instances.isEmpty()) {
+            // Return the URI of the first instance
+            return instances.get(0).getUri().toString(); // e.g., http://192.168.1.10:8080
+        }
+        return null;
+    }
+
+
+
     @GetMapping("/login")
     public String loginPage(@CookieValue(value = "auth_token", required = false) String authToken, Model model) {
         model.addAttribute("isAuthenticated", authToken != null);
@@ -317,7 +329,7 @@ public class AuthServiceController {
         params.add("subject", "Verification Confirmation");
         params.add("body",link);
 
-        String URL = "http://localhost:8085/email/sendEmail";
+        String URL = getEmailServiceUrl()+"/email/sendEmail";
         //Calling the other service (email-service)
         String result = new RestTemplate().postForObject(URL, params, String.class);
     }
