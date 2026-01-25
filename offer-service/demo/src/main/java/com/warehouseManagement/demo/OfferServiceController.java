@@ -266,12 +266,44 @@ public class OfferServiceController {
         Wholesaler wholesaler = wholesalerRepository.findByUser_Id(user.getId());
 
         model.addAttribute(
-                "orderOffers",
+                "orders",
                 orderOfferRepository.findByOffer_Wholesaler(wholesaler)
+                        .stream()
+                        .map(OrderOffer::getOrder)
+                        .filter(order -> !"CANCELLED".equals(order.getStatus()))
+                        .distinct()
+                        .toList()
         );
 
         return "wholesaler-orders";
     }
+
+    @GetMapping("/wholesaler/orders/{orderId}")
+    public String wholesalerOrderDetails(@PathVariable int orderId,
+                                         @RequestHeader("X-User-Id") int userId,
+                                         Model model) {
+
+        User user = userRepository.findById(userId);
+        Wholesaler wholesaler = wholesalerRepository.findByUser_Id(user.getId());
+
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+
+        // sprawdzamy czy zamówienie zawiera produkty tego hurtownika
+        boolean belongsToWholesaler = orderOfferRepository.findByOrder(order)
+                .stream()
+                .anyMatch(oo -> oo.getOffer().getWholesaler().getId() == wholesaler.getId());
+
+        if (!belongsToWholesaler) {
+            return "redirect:/offer/wholesaler/orders";
+        }
+
+        model.addAttribute("order", order);
+        model.addAttribute("orderOffers", orderOfferRepository.findByOrder(order));
+
+        return "wholesaler-order-details";
+    }
+
 
     private boolean isValidStatusChange(String current, String next) {
 
@@ -280,6 +312,7 @@ public class OfferServiceController {
             case "ORDERED" -> next.equals("IN_PROGRESS");
             case "IN_PROGRESS" -> next.equals("SHIPPED");
             case "SHIPPED" -> next.equals("DELIVERED");
+            case "CANCELLED" -> false;
             default -> false;
         };
     }
@@ -411,6 +444,32 @@ public class OfferServiceController {
         orderRepository.save(order);
 
         return "redirect:/offer/account";
+    }
+
+    @PostMapping("/orders/cancel")
+    @Transactional
+    public String cancelOrder(@RequestHeader("X-User-Id") int userId,
+                              @RequestParam int orderId) {
+
+        User user = userRepository.findById(userId);
+        Store store = storeRepository.findByUser_Id(user.getId());
+
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+
+        if (order.getStore().getId() != store.getId()) {
+            return "redirect:/offer/orders";
+        }
+
+        // można anulować tylko zamówienie jeszcze nierozpoczęte
+        if (!"ORDERED".equals(order.getStatus())) {
+            return "redirect:/offer/orders/" + orderId;
+        }
+
+        order.setStatus("CANCELLED");
+        orderRepository.save(order);
+
+        return "redirect:/offer/orders";
     }
 }
 

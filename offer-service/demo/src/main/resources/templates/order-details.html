@@ -55,6 +55,21 @@
     <button type="submit">Place order</button>
 </form>
 
+<form th:if="${order.status == 'ORDERED'}"
+      th:action="@{/offer/orders/cancel}"
+      method="post"
+      style="margin-top:10px;">
+
+    <input type="hidden"
+           name="orderId"
+           th:value="${order.orderId}" />
+
+    <button type="submit"
+            style="background-color:#c0392b;color:white;">
+        Cancel
+    </button>
+</form>
+
 <br>
 <a href="/offer/orders">Back to orders</a>
 
