@@ -181,6 +181,10 @@ public class OfferServiceController {
                 .orElseThrow(() -> new RuntimeException("Offer not found"));
 
         int quantity = purchaseDTO.getQuantity();
+        if(quantity<offer.getMinimal_quantity()){
+            System.out.println("Not enough quantity");
+            throw new RuntimeException("Not enough quantity");
+        }
 
         offer.setAvailable_quantity(
                 offer.getAvailable_quantity() - quantity

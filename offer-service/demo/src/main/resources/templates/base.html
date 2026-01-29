@@ -1,87 +1,49 @@
-<!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Base Layout</title>
+<div th:fragment="navbar">
 
-    <!-- Bootstrap -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" defer></script>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light"
 
-    <style>
-        .base-navbar{
-            position: sticky;
-            top: 0;
-            z-index: 1030; /* above content */
-            background: #ffffff;
-            border-bottom: 1px solid rgba(0,0,0,.08);
-            box-shadow: 0 4px 12px rgba(0,0,0,.04);
-        }
+         style="
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        z-index: 1030;
+        background-color: #f0f0f0 !important;
+     ">
 
-        .base-navbar__inner{
-            max-width: 1100px;
-            margin: 0 auto;
-            padding: 12px 16px;
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#" style="font-weight: bold; color: black !important;">Site</a>
 
-        .base-navbar__brand{
-            font-weight: 700;
-            text-decoration: none;
-            color: #111;
-            padding: 8px 10px;
-            border-radius: 10px;
-        }
-        .base-navbar__brand:hover{
-            background: rgba(0,0,0,.04);
-        }
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
+                    aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
 
-        .base-navbar__actions{
-            margin-left: auto;           /* pushes actions to the right */
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-center">
 
-        .base-navbar__link{
-            text-decoration: none;
-            color: #222;
-            padding: 8px 12px;
-            border-radius: 10px;
-        }
-        .base-navbar__link:hover{
-            background: rgba(0,0,0,.04);
-        }
+                    <li class="nav-item">
+                        <a class="nav-link" href="/offer/account" style="color: black !important;">Account</a>
+                    </li>
 
-        .base-navbar__logout{
-            text-decoration: none;
-            padding: 8px 12px;
-            border-radius: 10px;
-            border: 1px solid rgba(0,0,0,.12);
-            color: #222;
-            background: #fff;
-        }
-        .base-navbar__logout:hover{
-            background: rgba(0,0,0,.04);
-        }
-    </style>
-</head>
-<body>
+                    <li class="nav-item">
+                        <form th:action="@{/auth/logout}" method="post" style="display:inline;">
+                            <button type="submit"
+                                    class="nav-link btn btn-link"
+                                    style="color: black !important; padding: 0;">
+                                Logout
+                            </button>
+                        </form>
+                    </li>
 
-<nav class="base-navbar" th:fragment="navbar">
-    <div class="base-navbar__inner">
-        <a class="base-navbar__brand" th:href="@{/auth/login}">Site</a>
 
-        <div class="base-navbar__actions">
-            <a class="base-navbar__link" th:href="@{/offer}">Offer</a>
-            <a class="base-navbar__logout" th:href="@{/logout}">Logout</a>
+                </ul>
+            </div>
         </div>
-    </div>
-</nav>
+    </nav>
 
-<main th:fragment="content"></main>
+</div>
 
-</body>
-</html>
+
+

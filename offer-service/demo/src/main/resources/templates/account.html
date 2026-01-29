@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>Account</title>
-    <link rel="stylesheet" th:href="@{/offer/css/offers.css}">
+    <link rel="stylesheet" th:href="@{/offer/css/account.css}">
+    <link rel="stylesheet" th:href="@{/offer/css/base.css}">
 
     <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -13,99 +14,119 @@
 <body>
 
 
+<div th:replace="base::navbar"></div>
 
 
-<a href="/auth/login">Back</a>
 
-<div>
-    Hello, <span th:text="${email}"></span>. Your id is:
-    <span th:text="${id}"></span>
-    <br>You are a <span th:text="${role}"></span> named <span th:text="${est_name}"></span>
-    located on: <span th:text="${address}"></span>
-</div>
 
-<div th:if="${role == 'wholesaler'}">
-    <h2>My offers</h2>
 
-    <table border="1">
-        <tr>
-            <th>Product</th>
-            <th>Price</th>
-            <th>Available quantity</th>
-            <th>Minimal quantity</th>
-        </tr>
 
-        <a href="/offer/wholesaler/orders">Orders for my offers</a>
-        <br><br>
+<div th:if="${role == 'wholesaler'}" class="storeWholeSalerContainer">
+    <div class="offers-wrap">
+        <h2>My offers</h2>
 
-        <tr th:each="offer : ${offers}">
-            <td th:text="${offer.product.name}"></td>
-            <td th:text="${offer.price}"></td>
-            <td th:text="${offer.available_quantity}"></td>
-            <td th:text="${offer.minimal_quantity}"></td>
-        </tr>
-    </table>
+        <a class="top-link" href="/offer/wholesaler/orders">Orders for my offers</a>
 
-    <h2>Add offer</h2>
+        <table class="offers-table">
+            <thead>
+            <tr>
+                <th>Product</th>
+                <th>Price</th>
+                <th>Available quantity</th>
+                <th>Minimal quantity</th>
+            </tr>
+            </thead>
 
-    <form th:action="@{/offer/account/add}"
-          th:object="${offerForm}"
-          method="post">
+            <tbody>
+            <tr th:each="offer : ${offers}">
+                <td th:text="${offer.product.name}"></td>
+                <td th:text="${offer.price}"></td>
+                <td th:text="${offer.available_quantity}"></td>
+                <td th:text="${offer.minimal_quantity}"></td>
+            </tr>
+            </tbody>
+        </table>
+        <div class="pager" style="display:flex; gap:8px; align-items:center; margin:10px 0;">
+            <button type="button" id="wPrevBtn">Prev</button>
+            <span id="wPageInfo"></span>
+            <button type="button" id="wNextBtn">Next</button>
 
-        <h3>Select product</h3>
-        <select id="productSelect" th:field="*{productId}">
-            <option value="">-- new product --</option>
-            <option th:each="p : ${products}"
-                    th:value="${p.id}"
-                    th:text="${p.name}">
-            </option>
-        </select>
-
-        <div id="newProductSection" style="display: none;">
-            <h3>New product</h3>
-
-            <label>Name of the product:</label>
-            <input type="text" th:field="*{productName}" />
-
-            <label>Producer:</label>
-            <select th:field="*{producerId}">
-                <option value="">-- select producer --</option>
-                <option th:each="prod : ${producers}"
-                        th:value="${prod.id}"
-                        th:text="${prod.producer_name}">
-                </option>
-            </select>
-
-            <label>Category:</label>
-            <select th:field="*{categoryId}">
-                <option value="">-- select category --</option>
-                <option th:each="cat : ${categories}"
-                        th:value="${cat.id}"
-                        th:text="${cat.name}">
-                </option>
+            <span style="margin-left:16px;">Rows per page:</span>
+            <select id="wPageSize">
+                <option>10</option>
+                <option selected>25</option>
+                <option>50</option>
+                <option>100</option>
             </select>
         </div>
 
-        <br>
 
-        <label>Price:</label>
-        <input type="number" step="0.01" th:field="*{price}" required />
-        <br>
 
-        <label>Available quantity:</label>
-        <input type="number" th:field="*{available_quantity}" required />
-        <br>
+    </div>
 
-        <label>Minimal quantity:</label>
-        <input type="number" th:field="*{minimal_quantity}" required />
-        <br>
+    <div class="offers-wrap" style="margin-top: 20px;">
+        <h2>Add offer</h2>
 
-        <button type="submit">Add offer</button>
+        <form th:action="@{/offer/account/add}"
+              th:object="${offerForm}"
+              method="post">
 
-    </form>
+            <h3>Select product</h3>
+            <select id="productSelect" th:field="*{productId}">
+                <option value="">-- new product --</option>
+                <option th:each="p : ${products}"
+                        th:value="${p.id}"
+                        th:text="${p.name}">
+                </option>
+            </select>
+
+            <div id="newProductSection" style="display: none;">
+                <h3>New product</h3>
+
+                <label>Name of the product:</label>
+                <input type="text" th:field="*{productName}" />
+
+                <label>Producer:</label>
+                <select th:field="*{producerId}">
+                    <option value="">-- select producer --</option>
+                    <option th:each="prod : ${producers}"
+                            th:value="${prod.id}"
+                            th:text="${prod.producer_name}">
+                    </option>
+                </select>
+
+                <label>Category:</label>
+                <select th:field="*{categoryId}">
+                    <option value="">-- select category --</option>
+                    <option th:each="cat : ${categories}"
+                            th:value="${cat.id}"
+                            th:text="${cat.name}">
+                    </option>
+                </select>
+            </div>
+
+            <br>
+
+            <label>Price:</label>
+            <input type="number" step="0.01" th:field="*{price}" required />
+            <br>
+
+            <label>Available quantity:</label>
+            <input type="number" th:field="*{available_quantity}" required />
+            <br>
+
+            <label>Minimal quantity:</label>
+            <input type="number" th:field="*{minimal_quantity}" required />
+            <br>
+
+            <button class="buy-btn" type="submit">Add offer</button>
+        </form>
+    </div>
+
 </div>
 
-<div th:if="${role == 'store'}">
+
+<div th:if="${role == 'store'}" class="storeWholeSalerContainer">
 
     <div th:if="${basketOrder != null and basketItems != null and !#lists.isEmpty(basketItems)}">
     <h2>Basket</h2>
@@ -136,44 +157,112 @@
         <hr>
     </div>
 
-    <h2>Available offers</h2>
 
-    <a href="/offer/orders">My orders</a>
-    <br><br>
 
-    <table border="1">
-        <tr>
-            <th>Product</th>
-            <th>Wholesaler</th>
-            <th>Price</th>
-            <th>Available quantity</th>
-            <th>Minimal quantity</th>
-            <th>Buy</th>
-        </tr>
+    <div class="offers-wrap">
+        <h2>Available offers</h2>
+        <a class="top-link" href="/offer/orders">My orders</a>
 
-        <tr th:each="offer : ${offers}">
-            <td th:text="${offer.product.name}"></td>
-            <td th:text="${offer.wholesaler.name}"></td>
-            <td th:text="${offer.price}"></td>
-            <td th:text="${offer.available_quantity}"></td>
-            <td th:text="${offer.minimal_quantity}"></td>
+        <table class="offers-table">
+            <thead>
+            <tr>
+                <th>Product</th>
+                <th>Wholesaler</th>
+                <th>Price</th>
+                <th>Available quantity</th>
+                <th>Minimal quantity</th>
+                <th>Add</th>
+            </tr>
+            </thead>
 
-            <td>
-                <form th:action="@{/offer/purchase}" method="post">
-                    <input type="hidden"
-                           name="offerId"
-                           th:value="${offer.id}" />
+            <tbody>
+            <tr th:each="offer : ${offers}">
+                <td th:text="${offer.product.name}"></td>
+                <td th:text="${offer.wholesaler.name}"></td>
+                <td th:text="${offer.price}"></td>
+                <td th:text="${offer.available_quantity}"></td>
+                <td th:text="${offer.minimal_quantity}"></td>
 
-                    <input type="number"
-                           name="quantity"
-                           min="1"
-                           required />
+                <td class="buy-cell">
+                    <form th:action="@{/offer/purchase}" method="post" style="display:inline;">
+                        <input type="hidden" name="offerId" th:value="${offer.id}" />
 
-                    <button type="submit">Buy</button>
-                </form>
-            </td>
-        </tr>
-    </table>
+                        <input class="qty-input"
+                               type="number"
+                               name="quantity"
+                               min="1"
+                               required />
+
+                        <button class="buy-btn" type="submit">Add</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <div class="pager" style="display:flex; gap:8px; align-items:center; margin:10px 0;">
+            <button type="button" id="prevBtn">Prev</button>
+            <span id="pageInfo"></span>
+            <button type="button" id="nextBtn">Next</button>
+
+            <span style="margin-left:16px;">Rows per page:</span>
+            <select id="pageSize">
+                <option>10</option>
+                <option selected>25</option>
+                <option>50</option>
+                <option>100</option>
+            </select>
+        </div>
+
+        <script>
+            (function () {
+              const table = document.querySelector(".offers-table");
+              if (!table) return;
+
+              const tbody = table.querySelector("tbody");
+              const rows = Array.from(tbody.querySelectorAll("tr"));
+
+              let page = 1;
+              let pageSize = 25;
+
+              const prevBtn = document.getElementById("prevBtn");
+              const nextBtn = document.getElementById("nextBtn");
+              const pageInfo = document.getElementById("pageInfo");
+              const pageSizeSelect = document.getElementById("pageSize");
+
+              function render() {
+                const totalPages = Math.max(1, Math.ceil(rows.length / pageSize));
+                page = Math.min(Math.max(page, 1), totalPages);
+
+                const start = (page - 1) * pageSize;
+                const end = start + pageSize;
+
+                rows.forEach((tr, i) => {
+                  tr.style.display = (i >= start && i < end) ? "" : "none";
+                });
+
+                const shownFrom = rows.length ? start + 1 : 0;
+                const shownTo = rows.length ? Math.min(end, rows.length) : 0;
+
+                pageInfo.textContent = `Page ${page} / ${totalPages} (showing ${shownFrom}-${shownTo} of ${rows.length})`;
+                prevBtn.disabled = page === 1;
+                nextBtn.disabled = page === totalPages;
+              }
+
+              prevBtn.addEventListener("click", () => { page--; render(); });
+              nextBtn.addEventListener("click", () => { page++; render(); });
+
+              pageSizeSelect.addEventListener("change", (e) => {
+                pageSize = parseInt(e.target.value, 10);
+                page = 1;
+                render();
+              });
+
+              render();
+            })();
+        </script>
+
+    </div>
 
 </div>
 
@@ -204,4 +293,60 @@
 
     // on change
     productSelect.addEventListener('change', toggleNewProductFields);
+</script>
+
+<script>
+    (function () {
+      // wholesaler table = pierwsza offers-table na stronie (gdy role=wholesaler)
+      const tables = document.querySelectorAll(".offers-table");
+      if (!tables.length) return;
+
+      const table = tables[0]; // w wholesaler widoczna jest ta pierwsza
+      const tbody = table.querySelector("tbody");
+      if (!tbody) return;
+
+      const rows = Array.from(tbody.querySelectorAll("tr"));
+
+      let page = 1;
+      let pageSize = 25;
+
+      const prevBtn = document.getElementById("wPrevBtn");
+      const nextBtn = document.getElementById("wNextBtn");
+      const pageInfo = document.getElementById("wPageInfo");
+      const pageSizeSelect = document.getElementById("wPageSize");
+
+      if (!prevBtn || !nextBtn || !pageInfo || !pageSizeSelect) return;
+
+      function render() {
+        const totalPages = Math.max(1, Math.ceil(rows.length / pageSize));
+        page = Math.min(Math.max(page, 1), totalPages);
+
+        const start = (page - 1) * pageSize;
+        const end = start + pageSize;
+
+        rows.forEach((tr, i) => {
+          tr.style.display = (i >= start && i < end) ? "" : "none";
+        });
+
+        const shownFrom = rows.length ? start + 1 : 0;
+        const shownTo = rows.length ? Math.min(end, rows.length) : 0;
+
+        pageInfo.textContent =
+          `Page ${page} / ${totalPages} (showing ${shownFrom}-${shownTo} of ${rows.length})`;
+
+        prevBtn.disabled = page === 1;
+        nextBtn.disabled = page === totalPages;
+      }
+
+      prevBtn.addEventListener("click", () => { page--; render(); });
+      nextBtn.addEventListener("click", () => { page++; render(); });
+
+      pageSizeSelect.addEventListener("change", (e) => {
+        pageSize = parseInt(e.target.value, 10);
+        page = 1;
+        render();
+      });
+
+      render();
+    })();
 </script>
