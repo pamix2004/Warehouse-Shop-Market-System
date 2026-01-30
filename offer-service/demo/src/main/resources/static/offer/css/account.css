@@ -3,7 +3,7 @@
   margin: 0 auto;
 
   width: 100%;
-  padding: 0 12px;
+
 
 }
 .offers-table{
@@ -58,3 +58,60 @@ display:block;
     display:flex;
     justify-content:center;
 }
+
+.baskets {
+border: 1px solid #bbb;
+max-width:1200px;
+margin: 0 auto;
+}
+.baskets-title { background:#e6e6e6; padding:10px; font-weight:700; border-bottom:1px solid #bbb; }
+
+.basket { border-bottom:1px solid #ddd; }
+.basket:last-child { border-bottom:0; }
+
+.basket-summary {
+  cursor:pointer;
+  padding:10px;
+  display:flex;
+  gap:10px;
+  align-items:center;
+}
+.basket-summary:hover { background:#f6f6f6; }
+
+.basket-name { font-weight:700; }
+.basket-meta { color:#666; font-size:0.9em; }
+
+.basket-body { padding:10px; }
+
+/* hide default marker (Chrome/Safari) */
+.basket-summary::-webkit-details-marker{
+  display:none;
+}
+
+/* custom triangle */
+.basket-summary::before{
+  content: "🠊";
+  display: inline-block;
+  width: 18px;
+}
+
+/* change arrow when opened */
+details[open] > .basket-summary::before{
+  content: "▼";
+}
+.baskets-summary
+{
+background:#e6e6e6;
+display:flex;
+align-items:center;
+justify-content:space-between;
+padding:10px;
+
+border-bottom:1px solid #bbb;
+}
+
+.placeOrderButton{
+background-color:#0066cc;
+color:white;
+}
+

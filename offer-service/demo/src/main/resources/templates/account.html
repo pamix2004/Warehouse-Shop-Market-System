@@ -128,35 +128,60 @@
 
 <div th:if="${role == 'store'}" class="storeWholeSalerContainer">
 
-    <div th:if="${basketOrder != null and basketItems != null and !#lists.isEmpty(basketItems)}">
-    <h2>Basket</h2>
 
-        <p>
-            <b>Wholesaler:</b>
-            <span th:text="${basketItems[0].offer.wholesaler.name}"></span>
-        </p>
+    <div class="baskets">
+        <div class="baskets-title">
+            Baskets (<span th:text="${cartDTOList.size()}">0</span> active)
+        </div>
 
-        <table border="1">
-            <tr>
-                <th>Product</th>
-                <th>Quantity</th>
-                <th>Unit price</th>
-            </tr>
+        <details th:each="cart : ${cartDTOList}" class="basket">
+            <summary class="basket-summary">
+      <span class="basket-name">
+        Wholesaler <span th:text="${cart.wholesalerName}">1</span>
+      </span>
 
-            <tr th:each="item : ${basketItems}">
-            <td th:text="${item.offer.product.name}"></td>
-                <td th:text="${item.quantity}"></td>
-                <td th:text="${item.offer.price}"></td>
-            </tr>
-        </table>
+                <span class="basket-meta">
+        (<span th:text="${#lists.size(cart.items)}">0</span> items,
+         $<span th:text="${cart.cartTotal}">0.00</span>)
+      </span>
+            </summary>
 
-        <a th:href="@{/offer/orders/{id}(id=${basketOrder.orderId})}">
-        Go to basket details
-        </a>
+            <div class="basket-body">
+                <table class="table table-sm">
+                    <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Qty</th>
+                        <th>Unit Price</th>
+                        <th>Total Price</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="it : ${cart.items}">
+                        <td th:text="${it.name}">Product name</td>
+                        <td th:text="${it.quantity}">1</td>
+                        <td th:text="${it.unitPrice}">1</td>
+                        <td th:text="${it.lineTotal}">1</td>
+                    </tr>
 
-        <hr>
+                    <tr th:if="${#lists.isEmpty(cart.items)}">
+                        <td colspan="2">No products</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </details>
+
+        <div class="baskets-summary">
+            <div>
+                Total: <b th:text="${allCartsPrice} + ' ZŁ'">ZŁ</b>
+            </div>
+            <form action="">
+                <button class ="placeOrderButton" type="submit">Place Order</button>
+            </form>
+        </div>
+
     </div>
-
 
 
     <div class="offers-wrap">
@@ -184,7 +209,7 @@
                 <td th:text="${offer.minimal_quantity}"></td>
 
                 <td class="buy-cell">
-                    <form th:action="@{/offer/purchase}" method="post" style="display:inline;">
+                    <form th:action="@{/offer/addToCart}" method="post" style="display:inline;">
                         <input type="hidden" name="offerId" th:value="${offer.id}" />
 
                         <input class="qty-input"

@@ -1,13 +1,18 @@
 package com.warehouseManagement.demo;
 
 
+import com.warehouseManagement.demo.dto.CartInformationDTO;
+import com.warehouseManagement.demo.dto.CartItemDTO;
 import com.warehouseManagement.demo.dto.OfferFormDTO;
 import com.warehouseManagement.demo.dto.OfferPurchaseDTO;
 import com.warehouseManagement.demo.entity.*;
 import com.warehouseManagement.demo.repo.*;
+import com.warehouseManagement.demo.repo.CartOfferRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import java.time.LocalDate;
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -47,6 +52,12 @@ public class OfferServiceController {
     @Autowired
     private OrderOfferRepository orderOfferRepository;
 
+    @Autowired
+    private CartRepository cartRepository;
+
+    @Autowired
+    private CartOfferRepository cartOfferRepository;
+
     //We derive ID from a token, if its invalid, we return -1
     public int deriveID(String token){
         System.out.println("Im deriving ID");
@@ -70,6 +81,7 @@ public class OfferServiceController {
 
 
 
+
     @GetMapping("/account")
     public String account(@RequestHeader("X-User-Id") int userId, Model model){
         User userEntity = userRepository.findById(userId);
@@ -85,16 +97,61 @@ public class OfferServiceController {
 
             model.addAttribute("offers", offerRepository.findAll());
 
-            Order activeOrder =
-                    orderRepository.findFirstByStoreAndStatus(storeEntity, "CREATED");
 
-            if (activeOrder != null) {
-                model.addAttribute("basketOrder", activeOrder);
-                model.addAttribute(
-                        "basketItems",
-                        orderOfferRepository.findByOrder(activeOrder)
-                );
+            List<CartInformationDTO> cartList = new ArrayList<>();
+            List<Cart> allCarts = cartRepository.findByStore(storeEntity);
+            float allCartsPrice = 0;
+
+            for (Cart cart : allCarts) {
+
+                CartInformationDTO dto = new CartInformationDTO();
+                dto.setCartId(cart.getCartId());
+                dto.setStoreId(cart.getStore().getId());
+                dto.setWholesalerName(cart.getWholesaler().getName());
+
+                double sum = 0;
+
+                List<CartItemDTO> items = new ArrayList<>();
+
+
+                // IMPORTANT: loop variable should be cartOffer, not cart
+                for (CartOffer cartOffer : cartOfferRepository.findAllByCart_CartId(cart.getCartId())) {
+
+                    CartItemDTO item = new CartItemDTO();
+
+
+                     item.setName(cartOffer.getOffer().getProduct().getName());
+
+                    item.setQuantity(cartOffer.getQuantity());
+                    item.setUnitPrice(cartOffer.getOffer().getPrice());
+                    item.setLineTotal(cartOffer.getOffer().getPrice()*cartOffer.getQuantity());
+                    items.add(item);
+
+
+                    // If you want total PRICE instead:
+                     sum += cartOffer.getQuantity() * cartOffer.getOffer().getPrice();
+                }
+
+                dto.setItems(items);
+                dto.setCartTotal(sum);
+                allCartsPrice = (float) (allCartsPrice + sum);
+
+
+                if(!items.isEmpty())
+                    cartList.add(dto);
             }
+
+            model.addAttribute("isAnyCartActive", !cartList.isEmpty());
+
+
+            model.addAttribute("cartDTOList", cartList);
+            model.addAttribute("allCartsPrice", allCartsPrice);
+
+
+
+
+
+
         } else if (role.equals("wholesaler")) {
             Wholesaler wsEntity = wholesalerRepository.findByUser_Id(userEntity.getId());
             model.addAttribute("est_name", wsEntity.getName());
@@ -247,6 +304,63 @@ public class OfferServiceController {
 
         return "redirect:/offer/account";
     }
+
+
+    @Transactional
+    @PostMapping("/addToCart")
+    public String addToCart(@RequestHeader("X-User-Id") int userId,
+                            @ModelAttribute OfferPurchaseDTO purchaseDTO,
+                            Model model) {
+
+        User user = userRepository.findById(userId);
+        Store store = storeRepository.findByUser_Id(user.getId());
+
+        Offer offer = offerRepository.getReferenceById(purchaseDTO.getOfferId());
+
+        if (purchaseDTO.getQuantity() < offer.getMinimal_quantity()
+                || purchaseDTO.getQuantity() > offer.getAvailable_quantity()) {
+            throw new RuntimeException("Not enough quantity");
+        }
+
+        // 1) znajdź cart dla (store, wholesaler) albo utwórz nowy
+        Cart cartEntity;
+
+        List<Cart> carts = cartRepository.findByStore_IdAndWholesaler_Id(
+                store.getId(),
+                offer.getWholesaler().getId()
+        );
+
+        if (!carts.isEmpty()) {
+            cartEntity = carts.get(0); // zakładamy 1 cart na (store, wholesaler)
+            System.out.println("Cart exists, cart_id=" + cartEntity.getCartId());
+        } else {
+            Cart newCart = new Cart();
+            newCart.setStore(store);
+            newCart.setWholesaler(offer.getWholesaler());
+            cartEntity = cartRepository.save(newCart);
+            System.out.println("Created cart_id=" + cartEntity.getCartId());
+        }
+
+        // 2) insert/update cart_product
+        Integer cartId = cartEntity.getCartId();
+
+
+        CartOffer cp = cartOfferRepository
+                .findByCart_CartIdAndOffer_Id(cartId, offer.getId())
+                .orElseGet(() -> {
+                    com.warehouseManagement.demo.entity.CartOffer x = new com.warehouseManagement.demo.entity.CartOffer();
+                    x.setCart(cartEntity);
+                    x.setOffer(offer);
+                    x.setQuantity(0);
+                    return x;
+                });
+
+        cp.setQuantity(cp.getQuantity() + purchaseDTO.getQuantity()); // albo = purchaseDTO.getQuantity() jeśli ma nadpisywać
+        cartOfferRepository.save(cp);
+
+        return "redirect:/offer/account";
+    }
+
 
 
     @GetMapping("/orders")

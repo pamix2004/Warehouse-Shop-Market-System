@@ -65,9 +65,14 @@
             <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
             <version>5.0.0</version>
         </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>provided</scope>
+        </dependency>
 
 
-	</dependencies>
+    </dependencies>
 
 	<build>
 		<plugins>
