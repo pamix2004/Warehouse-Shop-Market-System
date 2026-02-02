@@ -13,42 +13,48 @@
     <th>Order ID</th>
     <th>Store</th>
     <th>Date</th>
-    <th>Status</th>
+    <th>Order Status</th>
+      <th>Payment Status</th>
     <th>Total price</th>
     <th>Details</th>
     <th>Change status</th>
   </tr>
 
   <tr th:each="order : ${orders}">
-    <td th:text="${order.orderId}"></td>
-    <td th:text="${order.store.name}"></td>
-    <td th:text="${order.orderDate}"></td>
-    <td th:text="${order.status}"></td>
-    <td th:text="${order.price}"></td>
+      <td th:text="${order.id}"></td>
 
-    <td>
-      <a th:href="@{/offer/wholesaler/orders/{id}(id=${order.orderId})}">
-        <button type="button">Details</button>
-      </a>
-    </td>
+      <td th:text="${order.storeName}"></td>
+
+      <td th:text="${order.orderDate}"></td>
+
+      <td th:text="${order.Status}"></td>
+      <td th:text="${order.paymentStatus}"></td>
+
+      <td th:text="${order.totalPrice}"></td>
+
+      <td>
+          <a th:href="@{/offer/orders/{id}(id=${order.id})}">
+              <button type="button">Details</button>
+          </a>
+      </td>
 
     <td>
       <form th:action="@{/offer/wholesaler/orders/status}" method="post">
 
-        <input type="hidden" name="orderId" th:value="${order.orderId}" />
+        <input type="hidden" name="orderId" th:value="${order.id}" />
 
         <select name="status">
-          <option value="ORDERED"
-                  th:selected="${order.status == 'ORDERED'}">ORDERED</option>
+          <option value="Ordered"
+                  th:selected="${order.status == 'Ordered'}">Ordered</option>
 
-          <option value="IN_PROGRESS"
-                  th:selected="${order.status == 'IN_PROGRESS'}">IN_PROGRESS</option>
+          <option value="In progress"
+                  th:selected="${order.status == 'In progress'}">In progress</option>
 
-          <option value="SHIPPED"
-                  th:selected="${order.status == 'SHIPPED'}">SHIPPED</option>
+          <option value="Shipped"
+                  th:selected="${order.status == 'Shipped'}">Shipped</option>
 
-          <option value="DELIVERED"
-                  th:selected="${order.status == 'DELIVERED'}">DELIVERED</option>
+          <option value="Delivered"
+                  th:selected="${order.status == 'Delivered'}">Delivered</option>
         </select>
 
         <button type="submit">Update</button>

@@ -1,18 +1,17 @@
 package com.warehouseManagement.demo;
 
 
-import com.warehouseManagement.demo.dto.CartInformationDTO;
-import com.warehouseManagement.demo.dto.CartItemDTO;
-import com.warehouseManagement.demo.dto.OfferFormDTO;
-import com.warehouseManagement.demo.dto.OfferPurchaseDTO;
+import com.warehouseManagement.demo.dto.*;
 import com.warehouseManagement.demo.entity.*;
 import com.warehouseManagement.demo.repo.*;
 import com.warehouseManagement.demo.repo.CartOfferRepository;
+import com.warehouseManagement.demo.services.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import java.time.LocalDate;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -58,26 +57,12 @@ public class OfferServiceController {
     @Autowired
     private CartOfferRepository cartOfferRepository;
 
-    //We derive ID from a token, if its invalid, we return -1
-    public int deriveID(String token){
-        System.out.println("Im deriving ID");
-        int id = 1;
+    @Autowired
+    OrderService orderService;
 
-        //We validate JWT token using jwt-service (microservice). If it's correct it will return userId, if it's invalid it will throw HTTP status of 504 or 401.
-        try{
-            //User jwt-service
-            RestTemplate restTemplate = new RestTemplate();
-            ResponseEntity<Integer> resp = restTemplate.postForEntity("http://localhost:8085/jwt/verifyJWTToken?token={token}",null,Integer.class,token);
-            id = Integer.parseInt((String.valueOf(resp.getBody())));
-            int statusCode = resp.getStatusCode().value();
-            return id;
-        }
+    @Autowired
+    PaymentRepository paymentRepository;
 
-        catch (Exception e) {
-            System.out.println("Error when deriving ID,"+e.getMessage());
-            return -1;
-        }
-    }
 
 
 
@@ -225,83 +210,17 @@ public class OfferServiceController {
         return "test";
     }
 
-    @Transactional
-    @PostMapping("/purchase")
+    @PostMapping("/purchaseAllCarts")
     public String purchaseOffer(@RequestHeader("X-User-Id") int userId,
                                 @ModelAttribute OfferPurchaseDTO purchaseDTO,
                                 Model model) {
+        System.out.println(orderService.testOrderingu());
 
-        User user = userRepository.findById(userId);
-        Store store = storeRepository.findByUser_Id(user.getId());
+        Store store = storeRepository.findByUser_Id(userId);
+         List<Cart> allCarts = cartRepository.findByStore(store);
+         orderService.placeOrder(store.getId(),allCarts);
 
-        Offer offer = offerRepository.findById(purchaseDTO.getOfferId())
-                .orElseThrow(() -> new RuntimeException("Offer not found"));
-
-        int quantity = purchaseDTO.getQuantity();
-        if(quantity<offer.getMinimal_quantity()){
-            System.out.println("Not enough quantity");
-            throw new RuntimeException("Not enough quantity");
-        }
-
-        offer.setAvailable_quantity(
-                offer.getAvailable_quantity() - quantity
-        );
-        offerRepository.save(offer);
-
-        Order order = orderRepository.findFirstByStoreAndStatus(store, "CREATED");
-
-        if (order == null) {
-            order = new Order();
-            order.setStore(store);
-            order.setOrderDate(LocalDate.now());
-            order.setStatus("CREATED");
-            order.setPrice(BigDecimal.ZERO);
-            orderRepository.save(order);
-        }
-
-        boolean differentWholesaler = orderOfferRepository
-                .findByOrder(order)
-                .stream()
-                .anyMatch(orderOffer ->
-                        orderOffer.getOffer()
-                                .getWholesaler()
-                                .getId() != offer.getWholesaler().getId()
-                );
-
-        if (differentWholesaler) {
-            model.addAttribute(
-                    "error",
-                    "You can only order products from one wholesaler at a time."
-            );
-            return "redirect:/offer/account";
-        }
-
-        // DODAJEMY PRODUKT DO ZAMÓWIENIA
-        OrderOffer orderOffer =
-                orderOfferRepository.findByOrderAndOffer(order, offer);
-
-        if (orderOffer == null) {
-            orderOffer = new OrderOffer();
-            orderOffer.setOrder(order);
-            orderOffer.setOffer(offer);
-            orderOffer.setQuantity(quantity);
-        } else {
-            orderOffer.setQuantity(
-                    orderOffer.getQuantity() + quantity
-            );
-        }
-
-        orderOfferRepository.save(orderOffer);
-
-
-        // AKTUALIZACJA CENY ZAMÓWIENIA
-        BigDecimal itemPrice = BigDecimal
-                .valueOf(offer.getPrice())
-                .multiply(BigDecimal.valueOf(quantity));
-
-        order.setPrice(order.getPrice().add(itemPrice));
-        orderRepository.save(order);
-
+        System.out.println("All carts");
         return "redirect:/offer/account";
     }
 
@@ -365,15 +284,31 @@ public class OfferServiceController {
 
     @GetMapping("/orders")
     public String myOrders(@RequestHeader("X-User-Id") int userId, Model model) {
-
         User user = userRepository.findById(userId);
         Store store = storeRepository.findByUser_Id(user.getId());
 
-        model.addAttribute(
-                "orders",
-                orderRepository.findByStore(store)
-        );
+        List<Order> orders = orderRepository.findByStore(store);
+        List<OrderSummaryDTO> orderSummaryList = new ArrayList<>();
 
+        for (Order order : orders) {
+            OrderSummaryDTO dto = new OrderSummaryDTO();
+
+            // Basic field mapping
+            dto.setId(order.getOrderId());
+            dto.setOrderDate(order.getOrderDate());
+            dto.setStatus(order.getStatus());
+            dto.setTotalPrice(order.getPrice());
+
+            dto.setPaymentStatus(
+                    paymentRepository.findByOrder_OrderId(order.getOrderId())
+                            .map(Payment::getStatus)         // If payment exists, get its status
+                            .orElse(PaymentStatus.pending)   // If it doesn't, use pending
+            );
+
+            orderSummaryList.add(dto);
+        }
+
+        model.addAttribute("orders", orderSummaryList);
         return "orders";
     }
 
@@ -387,12 +322,28 @@ public class OfferServiceController {
                 "orders",
                 orderOfferRepository.findByOffer_Wholesaler(wholesaler)
                         .stream()
-                        .map(OrderOffer::getOrder)
+                        .map(OrderOffer::getOrder) // Get the Order from the OrderOffer
                         .filter(order -> !"CANCELLED".equals(order.getStatus()))
                         .distinct()
+                        .map(order -> {
+                            // Create the DTO
+                            OrderSummaryDTO dto = new OrderSummaryDTO();
+                            dto.setId(order.getOrderId());
+                            dto.setOrderDate(order.getOrderDate());
+                            dto.setStatus(order.getStatus());
+                            dto.setTotalPrice(order.getPrice());
+                            dto.setStoreName(order.getStore().getName());
+
+                            // Fetch and set the Payment Status
+                            PaymentStatus pStatus = paymentRepository.findByOrder_OrderId(order.getOrderId())
+                                    .map(Payment::getStatus)
+                                    .orElse(PaymentStatus.pending);
+                            dto.setPaymentStatus(pStatus);
+
+                            return dto;
+                        })
                         .toList()
         );
-
         return "wholesaler-orders";
     }
 
@@ -400,6 +351,7 @@ public class OfferServiceController {
     public String wholesalerOrderDetails(@PathVariable int orderId,
                                          @RequestHeader("X-User-Id") int userId,
                                          Model model) {
+
 
         User user = userRepository.findById(userId);
         Wholesaler wholesaler = wholesalerRepository.findByUser_Id(user.getId());
@@ -425,12 +377,14 @@ public class OfferServiceController {
 
     private boolean isValidStatusChange(String current, String next) {
 
+        System.out.println("current: "+current);
+        System.out.println("next: "+next);
         return switch (current) {
-            case "CREATED" -> false;
-            case "ORDERED" -> next.equals("IN_PROGRESS");
-            case "IN_PROGRESS" -> next.equals("SHIPPED");
-            case "SHIPPED" -> next.equals("DELIVERED");
-            case "CANCELLED" -> false;
+            case "Created" -> false;
+            case "Ordered" -> next.equals("In progress");
+            case "In progress" -> next.equals("Shipped");
+            case "Shipped" -> next.equals("Delivered");
+            case "Cancelled" -> false;
             default -> false;
         };
     }
@@ -441,33 +395,7 @@ public class OfferServiceController {
                                     @RequestParam int orderId,
                                     @RequestParam String status) {
 
-        User user = userRepository.findById(userId);
-        Wholesaler wholesaler = wholesalerRepository.findByUser_Id(user.getId());
-
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Order not found"));
-
-        // użytkownik może edytować tylko swoje zamówienia
-        boolean belongsToWholesaler = orderOfferRepository
-                .findByOrder(order)
-                .stream()
-                .anyMatch(orderOffer ->
-                        orderOffer.getOffer()
-                                .getWholesaler()
-                                .getId() == wholesaler.getId()
-                );
-
-
-        if (!belongsToWholesaler) {
-            return "redirect:/offer/wholesaler/orders";
-        }
-
-        if (!isValidStatusChange(order.getStatus(), status)) {
-            return "redirect:/offer/wholesaler/orders";
-        }
-
-        order.setStatus(status);
-        orderRepository.save(order);
+        orderService.updateOrderStatus(userId, orderId, status);
 
         return "redirect:/offer/wholesaler/orders";
     }
@@ -477,16 +405,24 @@ public class OfferServiceController {
     public String orderDetails(@PathVariable int orderId,
                                @RequestHeader("X-User-Id") int userId,
                                Model model) {
-
+//        System.out.println("tutaj jest problem!");
+        System.out.println("userId: "+userId);
         User user = userRepository.findById(userId);
-        Store store = storeRepository.findByUser_Id(user.getId());
+        Wholesaler wholesaler = wholesalerRepository.findByUser_Id(user.getId());
+
+
+
+
 
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
 
-        if (order.getStore().getId() != store.getId()) {
-            return "redirect:/offer/orders";
-        }
+
+        //U SHOULD CHECK IF the currentUser is the seller for given orderID
+        List<OrderOffer> orderOffers =  orderOfferRepository.findByOffer_Wholesaler(wholesaler);
+        System.out.println(orderOffers=orderOffers.get(0).);
+
+
 
         model.addAttribute("order", order);
         model.addAttribute(

@@ -9,26 +9,27 @@
 <h2>My orders</h2>
 
 <table border="1">
-  <tr>
-    <th>Order ID</th>
-    <th>Date</th>
-    <th>Status</th>
-    <th>Total price</th>
-    <th>Details</th>
-  </tr>
+    <tr>
+        <th>Order ID</th>
+        <th>Date</th>
+        <th>Status</th>
+        <th>Payment Status</th>
+        <th>Total price</th>
+        <th>Details</th>
+    </tr>
 
-  <tr th:each="order : ${orders}">
-    <td th:text="${order.orderId}"></td>
-    <td th:text="${order.orderDate}"></td>
-    <td th:text="${order.status}"></td>
-    <td th:text="${order.price}"></td>
-    <td>
-      <a th:href="@{/offer/orders/{id}(id=${order.orderId})}">
-        <button type="button">Details</button>
-      </a>
-    </td>
-  </tr>
-
+    <tr th:each="order : ${orders}">
+        <td th:text="${order.id}"></td>
+        <td th:text="${order.orderDate}"></td>
+        <td th:text="${order.status}"></td>
+        <td th:text="${order.paymentStatus}"></td>
+        <td th:text="${order.totalPrice}"></td>
+        <td>
+            <a th:href="@{/offer/orders/{id}(id=${order.id})}">
+                <button type="button">Details</button>
+            </a>
+        </td>
+    </tr>
 </table>
 
 <a href="/offer/account">Back</a>

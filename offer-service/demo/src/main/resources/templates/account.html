@@ -176,7 +176,7 @@
             <div>
                 Total: <b th:text="${allCartsPrice} + ' ZŁ'">ZŁ</b>
             </div>
-            <form action="">
+            <form action="/offer/purchaseAllCarts" method="post">
                 <button class ="placeOrderButton" type="submit">Place Order</button>
             </form>
         </div>
