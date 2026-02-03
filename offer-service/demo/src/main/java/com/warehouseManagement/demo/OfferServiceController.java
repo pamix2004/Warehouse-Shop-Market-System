@@ -408,19 +408,33 @@ public class OfferServiceController {
 //        System.out.println("tutaj jest problem!");
         System.out.println("userId: "+userId);
         User user = userRepository.findById(userId);
-        Wholesaler wholesaler = wholesalerRepository.findByUser_Id(user.getId());
+        Wholesaler wholesaler =  wholesalerRepository.findByUser_Id(user.getId());
+        Store store = storeRepository.findByUser_Id(userId);
 
-
+        System.out.println("User:"+user);
+        System.out.println("Wholesaler:"+wholesaler);
+        System.out.println("Store:"+store);
 
 
 
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
 
+        //Happens if we are a store
+       if(store != null) {
+           if(!orderRepository.existsByorderIdAndStoreId(orderId, store.getId())) {
+               throw  new RuntimeException("To nie twoja oferta!");
+           }
+       }
+       //Happens if we are the wholesaler
+       else{
+           if(orderRepository.doesOrderBelongToWholesaler(orderId, wholesaler.getId())==0){
+               throw  new RuntimeException("To nie twoja oferta!");
 
-        //U SHOULD CHECK IF the currentUser is the seller for given orderID
-        List<OrderOffer> orderOffers =  orderOfferRepository.findByOffer_Wholesaler(wholesaler);
-        System.out.println(orderOffers=orderOffers.get(0).);
+           }
+       }
+
+        
 
 
 
