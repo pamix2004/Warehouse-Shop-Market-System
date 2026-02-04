@@ -13,10 +13,6 @@ public class Payment {
     @Column(name = "payment_id")
     private int paymentId;
 
-    // Use unique = true to ensure database-level integrity
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "order_id", nullable = false, unique = true) // 'unique = true' is key!
-    private Order order;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
@@ -32,13 +28,7 @@ public class Payment {
         this.paymentId = paymentId;
     }
 
-    public Order getOrder() {
-        return order;
-    }
 
-    public void setOrder(Order order) {
-        this.order = order;
-    }
 
     public PaymentStatus getStatus() {
         return status;

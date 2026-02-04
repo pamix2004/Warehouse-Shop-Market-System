@@ -1,3 +1,78 @@
-.wholesalerOrdersContainer{
+.wholesalerOrdersContainer {
+    max-width: 1200px;
     margin-top:100px;
+    margin-left:auto;
+    margin-right:auto;
+    padding: 0 20px;
+}
+
+
+/* Header Styling */
+.filterHeader {
+    background-color: #f8f9fa; /* Lighter, modern grey */
+    font-weight: bold;
+    padding: 12px 20px;
+    border: 1px solid #dee2e6;
+    border-bottom: none; /* Connects to the box below */
+    border-radius: 8px 8px 0 0;
+    display: flex;
+    align-items: center;
+}
+
+/* Filter Box Grid */
+.filterBox {
+    display: grid;
+    gap: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    border: 1px solid #dee2e6;
+    padding: 25px;
+    background-color: #ffffff;
+    border-radius: 0 0 8px 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.filter-group label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #555;
+}
+
+/* Table overrides for better spacing */
+.table th {
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Base style for all status badges */
+.status-badge {
+    padding: 0.5em 0.7em;
+    font-weight: 500;
+}
+
+/* Specific status styles */
+.status-ordered {
+    background-color: #f59e0b; /* Soft orange */
+    color: white;
+}
+
+.status-in-progress {
+    background-color: #60a5fa; /* Light Blue */
+    color: #000;
+}
+
+.status-shipped {
+    background-color: #2563eb; /* Blue */
+    color: white;
+}
+
+.status-delivered {
+    background-color: #16a34a; /* Green */
+    color: white;
 }

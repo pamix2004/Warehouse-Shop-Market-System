@@ -62,8 +62,34 @@
                 <th>Change status</th>
             </tr>
             </thead>
-            <tbody id="ordersTbody">
-
+            <tbody>
+            <tr th:each="orderDTO : ${orders}" class="order-row">
+                <td th:text="${orderDTO.id}" class="order-id"></td>
+                <td th:text="${orderDTO.storeName}" class="store-name"></td>
+                <td th:text="${orderDTO.orderDate}" class="order-date"></td>
+                <td>
+                    <span class="badge bg-info text-dark" th:text="${orderDTO.status}"></span>
+                </td>
+                <td th:text="${orderDTO.paymentStatus}"></td>
+                <td th:text="${#numbers.formatDecimal(orderDTO.totalPrice, 1, 2) + ' USD'}"></td>
+                <td>
+                    <a th:href="@{/offer/orders/{id}(id=${orderDTO.id})}" class="btn btn-sm btn-outline-primary">
+                        Details
+                    </a>
+                </td>
+                <td>
+                    <form th:action="@{/offer/wholesaler/orders/status}" method="post" class="d-flex gap-2">
+                        <input type="hidden" name="orderId" th:value="${orderDTO.id}" />
+                        <select name="status" class="form-select form-select-sm">
+                            <option value="Ordered" th:selected="${orderDTO.status == 'Ordered'}">Ordered</option>
+                            <option value="In progress" th:selected="${orderDTO.status == 'In progress'}">In progress</option>
+                            <option value="Shipped" th:selected="${orderDTO.status == 'Shipped'}">Shipped</option>
+                            <option value="Delivered" th:selected="${orderDTO.status == 'Delivered'}">Delivered</option>
+                        </select>
+                        <button type="submit" class="btn btn-sm btn-success">Update</button>
+                    </form>
+                </td>
+            </tr>
             </tbody>
         </table>
     </div>

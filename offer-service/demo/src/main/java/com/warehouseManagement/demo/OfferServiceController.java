@@ -63,6 +63,9 @@ public class OfferServiceController {
     @Autowired
     PaymentRepository paymentRepository;
 
+    @Autowired
+    PaymentOrderRepository paymentOrderRepository;
+
 
 
 
@@ -299,11 +302,21 @@ public class OfferServiceController {
             dto.setStatus(order.getStatus());
             dto.setTotalPrice(order.getPrice());
 
-            dto.setPaymentStatus(
-                    paymentRepository.findByOrder_OrderId(order.getOrderId())
-                            .map(Payment::getStatus)         // If payment exists, get its status
-                            .orElse(PaymentStatus.pending)   // If it doesn't, use pending
-            );
+
+
+//            Szukaj tutaj!
+//            dto.setPaymentStatus(
+//                    paymentRepository.findByOrder_OrderId(order.getOrderId())
+//                            .map(Payment::getStatus)         // If payment exists, get its status
+//                            .orElse(PaymentStatus.pending)   // If it doesn't, use pending
+//            );
+            PaymentOrder po = paymentOrderRepository.findByOrder(order)
+                    .orElseThrow(() -> new RuntimeException("No payment found for this order"));
+
+            Payment payment = po.getPayment();
+        // Now you have the payment object and can do payment.getPaymentId(), etc.
+            dto.setPaymentStatus(payment.getStatus());
+
 
             orderSummaryList.add(dto);
         }
@@ -335,10 +348,18 @@ public class OfferServiceController {
                             dto.setStoreName(order.getStore().getName());
 
                             // Fetch and set the Payment Status
-                            PaymentStatus pStatus = paymentRepository.findByOrder_OrderId(order.getOrderId())
-                                    .map(Payment::getStatus)
-                                    .orElse(PaymentStatus.pending);
-                            dto.setPaymentStatus(pStatus);
+//                            Szukaj tutaj
+//                            PaymentStatus pStatus = paymentRepository.findByOrder_OrderId(order.getOrderId())
+//                                    .map(Payment::getStatus)
+//                                    .orElse(PaymentStatus.pending);
+//                            dto.setPaymentStatus(pStatus);
+
+                            PaymentOrder po = paymentOrderRepository.findByOrder(order)
+                                    .orElseThrow(() -> new RuntimeException("No payment found for this order"));
+
+                            Payment payment = po.getPayment();
+                            // Now you have the payment object and can do payment.getPaymentId(), etc.
+                            dto.setPaymentStatus(payment.getStatus());
 
                             return dto;
                         })
@@ -375,19 +396,7 @@ public class OfferServiceController {
     }
 
 
-    private boolean isValidStatusChange(String current, String next) {
 
-        System.out.println("current: "+current);
-        System.out.println("next: "+next);
-        return switch (current) {
-            case "Created" -> false;
-            case "Ordered" -> next.equals("In progress");
-            case "In progress" -> next.equals("Shipped");
-            case "Shipped" -> next.equals("Delivered");
-            case "Cancelled" -> false;
-            default -> false;
-        };
-    }
 
 
     @PostMapping("/wholesaler/orders/status")
