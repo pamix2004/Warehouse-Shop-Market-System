@@ -82,6 +82,10 @@ public class OrderService {
                     throw new RuntimeException("Requested quantity for " + currentOffer.getId() + " exceeds availability");
                 }
 
+                int leftAvailableQuantity = currentOffer.getAvailable_quantity() - cartOffer.getQuantity();
+                currentOffer.setAvailable_quantity(leftAvailableQuantity);
+                offerRepository.save(currentOffer);
+
                 OrderOffer orderOffer = new OrderOffer();
                 orderOffer.setOrder(newOrder);
                 orderOffer.setOffer(cartOffer.getOffer());
