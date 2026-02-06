@@ -115,3 +115,91 @@ background-color:#0066cc;
 color:white;
 }
 
+/* General container styling */
+.add-offer-section {
+    font-family: Arial, sans-serif;
+    color: #333;
+    padding: 20px;
+}
+
+.add-offer-section h2 { font-size: 24px; margin-bottom: 20px; }
+.add-offer-section h3 { font-size: 18px; margin: 15px 0 10px 0; }
+
+/* Horizontal Layouts */
+.inline-fields, .price-qty-section {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.field-group {
+    display: flex;
+    flex-direction: column; /* Label above input for the New Product row */
+    gap: 5px;
+}
+
+/* Row alignment for Price/Qty (Label next to input) */
+.field-group.row-align {
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Input Styling */
+.add-offer-section input,
+.add-offer-section select {
+    padding: 6px 8px;
+    border: 1px solid #999;
+    border-radius: 2px;
+    background-color: #fff;
+}
+
+.add-offer-section input[type="number"] {
+    width: 80px;
+}
+
+/* Specific styling for the large Select Product dropdown */
+.styled-select {
+    width: 350px;
+}
+
+/* Button Styling */
+.add-offer-btn {
+    background-color: #0061c1;
+    color: white;
+    border: none;
+    padding: 8px 20px;
+    font-weight: bold;
+    cursor: pointer;
+    border-radius: 2px;
+    margin-top: 10px;
+}
+
+.add-offer-btn:hover {
+    background-color: #004a94;
+}
+
+.field-note {
+    display: block;
+    font-size: 0.75rem; /* Smaller font */
+    color: #666;        /* Muted gray */
+    margin-top: 4px;
+    line-height: 1.2;
+}
+
+.field-note a {
+    color: #0061c1;     /* Match your theme blue */
+    text-decoration: none;
+}
+
+.field-note a:hover {
+    text-decoration: underline;
+}
+
+/* Ensure the input-inline-group keeps things stacked neatly */
+.input-inline-group {
+    display: flex;
+    flex-direction: column;
+}

@@ -1,6 +1,7 @@
 package com.warehouseManagement.demo;
 
 
+import com.warehouseManagement.demo.Exceptions.ProductAlreadyExistsException;
 import com.warehouseManagement.demo.dto.*;
 import com.warehouseManagement.demo.entity.*;
 import com.warehouseManagement.demo.repo.*;
@@ -13,12 +14,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @RequestMapping("/offer")
@@ -164,48 +167,41 @@ public class OfferServiceController {
 
 
     @PostMapping("/account/add")
-    public String addOffer(@RequestHeader("X-User-Id") int userId,@ModelAttribute("offerForm") OfferFormDTO form) {
+    @ResponseBody // Return JSON instead of a view
+    public ResponseEntity<?> addOffer(@RequestHeader("X-User-Id") int userId, @ModelAttribute("offerForm") OfferFormDTO form) {
+        try {
+            User user = userRepository.findById(userId);
+            Wholesaler wholesaler = wholesalerRepository.findByUser_Id(user.getId());
 
+            Product product;
+            if (form.getProductId() != null) {
+                product = productRepository.findById(form.getProductId())
+                        .orElseThrow(() -> new RuntimeException("Product not found"));
+            } else {
+                if(productRepository.existsByName(form.getProductName())){
+                    // Return a 400 error with the message
+                    return ResponseEntity.badRequest().body("Product already exists");
+                }
 
+                Product newProduct = new Product();
+                newProduct.setName(form.getProductName());
+                newProduct.setProducer(producerRepository.findById(form.getProducerId()).orElseThrow());
+                newProduct.setCategory(categoryRepository.findById(form.getCategoryId()).orElseThrow());
+                product = productRepository.save(newProduct);
+            }
 
-        User user = userRepository.findById(userId);
-        Wholesaler wholesaler = wholesalerRepository.findByUser_Id(user.getId());
+            Offer offer = new Offer();
+            offer.setProduct(product);
+            offer.setWholesaler(wholesaler);
+            offer.setPrice(form.getPrice());
+            offer.setAvailable_quantity(form.getAvailable_quantity());
+            offer.setMinimal_quantity(form.getMinimal_quantity());
+            offerRepository.save(offer);
 
-        Product product;
-
-        // ===== WYBRANY ISTNIEJĄCY PRODUKT =====
-        if (form.getProductId() != null) {
-
-            product = productRepository.findById(form.getProductId())
-                    .orElseThrow(() -> new RuntimeException("Product not found"));
-
+            return ResponseEntity.ok("Offer added successfully");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
-        // ===== NOWY PRODUKT =====
-        else {
-
-            Product newProduct = new Product();
-            newProduct.setName(form.getProductName());
-            newProduct.setProducer(
-                    producerRepository.findById(form.getProducerId()).orElseThrow()
-            );
-            newProduct.setCategory(
-                    categoryRepository.findById(form.getCategoryId()).orElseThrow()
-            );
-
-            product = productRepository.save(newProduct);
-        }
-
-        // ===== OFERTA =====
-        Offer offer = new Offer();
-        offer.setProduct(product);
-        offer.setWholesaler(wholesaler);
-        offer.setPrice(form.getPrice());
-        offer.setAvailable_quantity(form.getAvailable_quantity());
-        offer.setMinimal_quantity(form.getMinimal_quantity());
-
-        offerRepository.save(offer);
-
-        return "redirect:/offer/account";
     }
 
     @GetMapping("/testCSS")
