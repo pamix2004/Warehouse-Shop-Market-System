@@ -301,6 +301,11 @@ public class OfferServiceController {
             dto.setOrderDate(order.getOrderDate());
             dto.setStatus(order.getStatus());
             dto.setTotalPrice(order.getPrice());
+            System.out.println("id orderu = "+offerRepository.findById(order.getOrderId())+"id wholeseerla "+offerRepository.findById(order.getOrderId()).get().getWholesaler().getId());
+            //dto.setWholesalerName(offerRepository.findById(order.getOrderId()).get().getWholesaler().getName());
+            List<OrderOffer> ord =  orderOfferRepository.findByOrder(order);
+            dto.setWholesalerName(ord.get(0).getOffer().getWholesaler().getName());
+
 
 
 
@@ -318,12 +323,14 @@ public class OfferServiceController {
             dto.setPaymentStatus(payment.getStatus());
 
 
+
             orderSummaryList.add(dto);
         }
 
         model.addAttribute("orders", orderSummaryList);
         return "orders";
     }
+
 
     @GetMapping("/wholesaler/orders")
     public String wholesalerOrders(@RequestHeader("X-User-Id") int userId, Model model) {
@@ -527,26 +534,7 @@ public class OfferServiceController {
     @Transactional
     public String cancelOrder(@RequestHeader("X-User-Id") int userId,
                               @RequestParam int orderId) {
-
-        User user = userRepository.findById(userId);
-        Store store = storeRepository.findByUser_Id(user.getId());
-
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Order not found"));
-
-        if (order.getStore().getId() != store.getId()) {
-            return "redirect:/offer/orders";
-        }
-
-        // można anulować tylko zamówienie jeszcze nierozpoczęte
-        if (!"ORDERED".equals(order.getStatus())) {
-            return "redirect:/offer/orders/" + orderId;
-        }
-
-        order.setStatus("CANCELLED");
-        orderRepository.save(order);
-
-        return "redirect:/offer/orders";
+        return orderService.cancelOrder(userId, orderId);
     }
 }
 

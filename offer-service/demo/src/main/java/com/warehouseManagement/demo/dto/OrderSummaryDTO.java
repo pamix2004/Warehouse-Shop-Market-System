@@ -10,6 +10,7 @@ import java.time.LocalDate;
 public class OrderSummaryDTO {
     public int id;
     public String storeName;
+    public String wholesalerName;
     public LocalDate orderDate;
     public String Status;
     public BigDecimal totalPrice;

@@ -187,6 +187,47 @@ public class OrderService {
         return "redirect:/offer/wholesaler/orders";
     }
 
+    @Transactional
+    public String cancelOrder(int userId, int orderId) {
+
+        System.out.println("Probuje anulowac");
+        User user = userRepository.findById(userId);
+        Store store = storeRepository.findByUser_Id(user.getId());
+
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+
+
+
+        //You can only cancel your own order
+        if (order.getStore().getId() != store.getId()) {
+            return "redirect:/offer/orders";
+        }
+
+        // można anulować tylko zamówienie jeszcze nierozpoczęte
+        if (!"Ordered".equals(order.getStatus())) {
+            System.out.println("tutaj jest blad bo dalem UPPERCASE!");
+            return "redirect:/offer/orders/" + orderId;
+        }
+
+        //You should add products to available pool when u cancel
+        List<OrderOffer> listOfOrderOffers =  orderOfferRepository.findByOrder(order);
+        Offer currentOffer;
+        for(OrderOffer orderOffer: listOfOrderOffers) {
+            currentOffer = orderOffer.getOffer();
+            currentOffer.setAvailable_quantity(currentOffer.getAvailable_quantity()+orderOffer.getQuantity());
+            offerRepository.save(currentOffer);
+        }
+
+        order.setStatus("Cancelled");
+        orderRepository.save(order);
+        System.out.println("Chyba anulowało");
+
+
+        return "redirect:/offer/orders";
+    }
+
+
 
 
 }
