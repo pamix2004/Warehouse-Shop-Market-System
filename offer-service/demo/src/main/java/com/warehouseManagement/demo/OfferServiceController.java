@@ -6,6 +6,7 @@ import com.warehouseManagement.demo.dto.*;
 import com.warehouseManagement.demo.entity.*;
 import com.warehouseManagement.demo.repo.*;
 import com.warehouseManagement.demo.repo.CartOfferRepository;
+import com.warehouseManagement.demo.services.CartService;
 import com.warehouseManagement.demo.services.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import java.time.LocalDate;
@@ -69,6 +70,9 @@ public class OfferServiceController {
     @Autowired
     PaymentOrderRepository paymentOrderRepository;
 
+    @Autowired
+    CartService cartService;
+
 
 
 
@@ -116,6 +120,7 @@ public class OfferServiceController {
                     item.setQuantity(cartOffer.getQuantity());
                     item.setUnitPrice(cartOffer.getOffer().getPrice());
                     item.setLineTotal(cartOffer.getOffer().getPrice()*cartOffer.getQuantity());
+                    item.setOfferId(cartOffer.getOffer().getId());
                     items.add(item);
 
 
@@ -162,6 +167,8 @@ public class OfferServiceController {
 
         return "account";
 }
+
+
 
 
 
@@ -224,57 +231,11 @@ public class OfferServiceController {
     }
 
 
-    @Transactional
     @PostMapping("/addToCart")
     public String addToCart(@RequestHeader("X-User-Id") int userId,
-                            @ModelAttribute OfferPurchaseDTO purchaseDTO,
-                            Model model) {
+                            @ModelAttribute OfferPurchaseDTO purchaseDTO) {
 
-        User user = userRepository.findById(userId);
-        Store store = storeRepository.findByUser_Id(user.getId());
-
-        Offer offer = offerRepository.getReferenceById(purchaseDTO.getOfferId());
-
-        if (purchaseDTO.getQuantity() < offer.getMinimal_quantity()
-                || purchaseDTO.getQuantity() > offer.getAvailable_quantity()) {
-            throw new RuntimeException("Not enough quantity");
-        }
-
-        // 1) znajdź cart dla (store, wholesaler) albo utwórz nowy
-        Cart cartEntity;
-
-        List<Cart> carts = cartRepository.findByStore_IdAndWholesaler_Id(
-                store.getId(),
-                offer.getWholesaler().getId()
-        );
-
-        if (!carts.isEmpty()) {
-            cartEntity = carts.get(0); // zakładamy 1 cart na (store, wholesaler)
-            System.out.println("Cart exists, cart_id=" + cartEntity.getCartId());
-        } else {
-            Cart newCart = new Cart();
-            newCart.setStore(store);
-            newCart.setWholesaler(offer.getWholesaler());
-            cartEntity = cartRepository.save(newCart);
-            System.out.println("Created cart_id=" + cartEntity.getCartId());
-        }
-
-        // 2) insert/update cart_product
-        Integer cartId = cartEntity.getCartId();
-
-
-        CartOffer cp = cartOfferRepository
-                .findByCart_CartIdAndOffer_Id(cartId, offer.getId())
-                .orElseGet(() -> {
-                    com.warehouseManagement.demo.entity.CartOffer x = new com.warehouseManagement.demo.entity.CartOffer();
-                    x.setCart(cartEntity);
-                    x.setOffer(offer);
-                    x.setQuantity(0);
-                    return x;
-                });
-
-        cp.setQuantity(cp.getQuantity() + purchaseDTO.getQuantity()); // albo = purchaseDTO.getQuantity() jeśli ma nadpisywać
-        cartOfferRepository.save(cp);
+        cartService.addOfferToCart(userId, purchaseDTO);
 
         return "redirect:/offer/account";
     }
@@ -297,10 +258,11 @@ public class OfferServiceController {
             dto.setOrderDate(order.getOrderDate());
             dto.setStatus(order.getStatus());
             dto.setTotalPrice(order.getPrice());
+            dto.setWholesalerName(order.getWholesaler().getName());
             System.out.println("id orderu = "+offerRepository.findById(order.getOrderId())+"id wholeseerla "+offerRepository.findById(order.getOrderId()).get().getWholesaler().getId());
             //dto.setWholesalerName(offerRepository.findById(order.getOrderId()).get().getWholesaler().getName());
             List<OrderOffer> ord =  orderOfferRepository.findByOrder(order);
-            dto.setWholesalerName(ord.get(0).getOffer().getWholesaler().getName());
+            //dto.setWholesalerName(ord.get(0).getOffer().getWholesaler().getName());
 
 
 
@@ -327,6 +289,25 @@ public class OfferServiceController {
         return "orders";
     }
 
+
+    @PostMapping("/cart/update")
+    @ResponseBody
+    public ResponseEntity<?> updateCartQuantity(
+            @RequestHeader("X-User-Id") int userId,
+            @RequestParam int cartId,
+            @RequestParam int offerId,
+            @RequestParam int quantity) {
+
+        try {
+            cartService.updateOfferQuantity(userId, cartId, offerId, quantity);
+            List<CartInformationDTO> cartInformationDTOList = cartService.getCartDetailsForStore(userId);
+            return ResponseEntity.ok(cartInformationDTOList);
+        } catch (Exception e) {
+            // Change body(null) to body(e.getMessage())
+            // Also changed return type to ResponseEntity<?> to allow both List and String
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
 
     @GetMapping("/wholesaler/orders")
     public String wholesalerOrders(@RequestHeader("X-User-Id") int userId, Model model) {

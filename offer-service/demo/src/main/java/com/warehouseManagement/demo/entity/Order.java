@@ -26,6 +26,14 @@ public class Order {
     @Column(nullable = false)
     private BigDecimal price;
 
+    @ManyToOne
+    @JoinColumn(name = "wholesaler_id", nullable = false)
+    private Wholesaler wholesaler;
+
+    public Wholesaler getWholesaler() { return wholesaler; }
+    public void setWholesaler(Wholesaler wholesaler) { this.wholesaler = wholesaler; }
+
+
     // ===== getters / setters =====
 
     public Integer getOrderId() {

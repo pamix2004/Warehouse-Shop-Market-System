@@ -68,7 +68,7 @@ public class OrderService {
             newOrder.setStatus("Ordered");
             newOrder.setStore(store);
             newOrder.setPrice(BigDecimal.ZERO);
-            newOrder = orderRepository.save(newOrder);
+//            newOrder = orderRepository.save(newOrder);
 
             List<CartOffer> itemsInCart = cartOfferRepository.findAllByCart_CartId(cart.getCartId());
             double runningTotal = 0.0;
@@ -77,6 +77,8 @@ public class OrderService {
             for (CartOffer cartOffer : itemsInCart) {
                 // Check availability
                 Offer currentOffer = offerRepository.findById(cartOffer.getOffer().getId());
+                newOrder.setWholesaler(currentOffer.getWholesaler());
+                orderRepository.save(newOrder);
 
                 if (cartOffer.getQuantity() > currentOffer.getAvailable_quantity()) {
                     throw new RuntimeException("Requested quantity for " + currentOffer.getId() + " exceeds availability");

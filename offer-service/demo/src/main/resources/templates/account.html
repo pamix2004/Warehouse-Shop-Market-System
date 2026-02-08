@@ -7,6 +7,8 @@
     <link rel="stylesheet" th:href="@{/offer/css/base.css}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:src="@{/offer/js/account-cartManagement.js}"></script>
+    <script th:src="@{/offer/js/account-pagination.js}"></script>
 </head>
 <body>
 
@@ -122,14 +124,29 @@
             <div class="basket-body">
                 <table class="table table-sm">
                     <thead>
-                    <tr><th>Product</th><th>Qty</th><th>Unit Price</th><th>Total Price</th></tr>
+                    <tr><th>Product</th><th>Qty</th><th>Unit Price</th><th>Total Price</th><th></th></tr>
                     </thead>
                     <tbody>
-                    <tr th:each="it : ${cart.items}">
+                    <tr th:each="it : ${cart.items}" th:id="'item-row-' + ${it.offerId}">
                         <td th:text="${it.name}"></td>
-                        <td th:text="${it.quantity}"></td>
+                        <td>
+                            <input type="number"
+                                   class="form-control cart-qty-input"
+                                   th:value="${it.quantity}"
+                                   th:data-offer-id="${it.offerId}"
+                                   th:data-cart-id="${cart.cartId}">
+                        </td>
                         <td th:text="${it.unitPrice}"></td>
-                        <td th:text="${it.lineTotal}"></td>
+                        <td class="line-total-cell" th:text="${it.lineTotal}"></td>
+                        <td>
+                            <button type="button"
+                                    class="btn btn-outline-danger btn-sm remove-item-btn"
+                                    th:data-cart-id="${cart.cartId}"
+                                    th:data-offer-id="${it.offerId}"
+                                    title="Remove item">
+                                &times;
+                            </button>
+                        </td>
                     </tr>
                     </tbody>
                 </table>
@@ -191,74 +208,9 @@
     </div>
 </div>
 
-<script th:inline="javascript">
-    // 1. Toggle New Product Section
-    const productSelect = document.getElementById('productSelect');
-    const newProductSection = document.getElementById('newProductSection');
-    if (productSelect) {
-        const toggle = () => newProductSection.style.display = (productSelect.value === "") ? 'block' : 'none';
-        productSelect.addEventListener('change', toggle);
-        toggle();
-    }
 
-    // 2. AJAX Submission (Wholesaler)
-    const form = document.getElementById('addOfferForm');
-    if (form) {
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const formData = new FormData(this);
-            const errorDiv = document.getElementById('ajax-error-container');
-            const errorText = document.getElementById('ajax-error-text');
-            const userId = [[${id}]];
 
-            fetch(this.action, {
-                method: 'POST',
-                body: formData,
-                headers: { 'X-User-Id': userId }
-            })
-            .then(async response => {
-                if (response.ok) {
-                    window.location.reload();
-                } else {
-                    const msg = await response.text();
-                    errorText.textContent = msg;
-                    errorDiv.style.display = 'block';
-                }
-            })
-            .catch(() => {
-                errorText.textContent = "Connection error.";
-                errorDiv.style.display = 'block';
-            });
-        });
-    }
 
-    // 3. Pagination Logic (Reusable)
-    function setupPagination(tableId, prevId, nextId, infoId, sizeId) {
-        const table = document.getElementById(tableId);
-        if (!table) return;
-        const rows = Array.from(table.querySelectorAll("tbody tr"));
-        let page = 1, pageSize = 25;
-        const prevBtn = document.getElementById(prevId), nextBtn = document.getElementById(nextId);
-        const info = document.getElementById(infoId), sizeSel = document.getElementById(sizeId);
-
-        function render() {
-            const total = Math.ceil(rows.length / pageSize) || 1;
-            page = Math.min(Math.max(page, 1), total);
-            rows.forEach((r, i) => r.style.display = (i >= (page-1)*pageSize && i < page*pageSize) ? "" : "none");
-            info.textContent = `Page ${page} / ${total}`;
-            prevBtn.disabled = (page === 1);
-            nextBtn.disabled = (page === total);
-        }
-        prevBtn.onclick = () => { page--; render(); };
-        nextBtn.onclick = () => { page++; render(); };
-        sizeSel.onchange = (e) => { pageSize = parseInt(e.target.value); page = 1; render(); };
-        render();
-    }
-
-    // Initialize paginations
-    setupPagination('wholesalerTable', 'wPrevBtn', 'wNextBtn', 'wPageInfo', 'wPageSize');
-    setupPagination('storeTable', 'prevBtn', 'nextBtn', 'pageInfo', 'pageSize');
-</script>
 
 </body>
 </html>

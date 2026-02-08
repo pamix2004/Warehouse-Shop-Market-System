@@ -13,5 +13,6 @@ public interface CartRepository extends JpaRepository<Cart, Integer> {
     List<Cart> findByStore(Store store);
     // List<Cart> findByWholesaler(Wholesaler wholesaler);
     List<Cart> findByStore_IdAndWholesaler_Id(Integer storeId, Integer wholesalerId);
-
+    // Checks if given cart Id belongs to the storeId
+    boolean existsByCartIdAndStore_Id(Integer cartId, Integer storeId);
 }
