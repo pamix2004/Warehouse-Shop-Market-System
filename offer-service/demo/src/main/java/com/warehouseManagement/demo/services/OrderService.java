@@ -1,5 +1,6 @@
 package com.warehouseManagement.demo.services;
 
+import com.warehouseManagement.demo.Exceptions.InvalidOrderStatusChange;
 import com.warehouseManagement.demo.PaymentStatus;
 import com.warehouseManagement.demo.entity.*;
 import com.warehouseManagement.demo.repo.*;
@@ -155,7 +156,7 @@ public class OrderService {
 
     }
 
-    public String updateOrderStatus(int userId, int orderId, String desiredStatus) {
+    public void updateOrderStatus(int userId, int orderId, String desiredStatus) {
 
         System.out.println("user wants to change state to " + desiredStatus);
         User user = userRepository.findById(userId);
@@ -175,18 +176,63 @@ public class OrderService {
                 );
 
 
+
+
         if (!belongsToWholesaler) {
-            return "redirect:/offer/wholesaler/orders";
+            throw new RuntimeException("You are not authorized to do it");
         }
 
-        //It should check if status change is possible
-        if(isValidStatusChange(order.getStatus(), desiredStatus,order)) {
+        boolean isValidStatusChange = false;
+        String statusMessage = "Transition allowed"; // Default message
+        String currentStatus = order.getStatus();
+
+        switch (currentStatus) {
+            case "Created":
+                statusMessage = "Order is in 'Created' state; it must be 'Ordered' before processing.";
+                isValidStatusChange = false;
+                break;
+
+            case "Ordered":
+                PaymentOrder paymentOrder = paymentOrderRepository.findByOrder(order)
+                        .orElseThrow(() -> new RuntimeException("Payment doesn't exist for this order"));
+
+                if (paymentOrder.getPayment().getStatus() != PaymentStatus.succeeded) {
+                    statusMessage = "Cannot change status if payment has not been completed";
+                    isValidStatusChange = false;
+                } else if (!desiredStatus.equals("In progress")) {
+                    statusMessage = "From 'Ordered', you can only move to 'In progress'.";
+                    isValidStatusChange = false;
+                } else {
+                    isValidStatusChange = true;
+                }
+                break;
+
+            case "In progress":
+                isValidStatusChange = desiredStatus.equals("Shipped");
+                if (!isValidStatusChange) statusMessage = "In progress orders can only move to 'Shipped'.";
+                break;
+
+            case "Shipped":
+                isValidStatusChange = desiredStatus.equals("Delivered");
+                if (!isValidStatusChange) statusMessage = "Shipped orders can only move to 'Delivered'.";
+                break;
+
+            default:
+                statusMessage = "Invalid transition or order is in a terminal state (Cancelled/Delivered).";
+                isValidStatusChange = false;
+                break;
+        }
+
+// Final Execution
+        if (isValidStatusChange) {
             order.setStatus(desiredStatus);
             orderRepository.save(order);
+        } else {
+            throw new InvalidOrderStatusChange(statusMessage);
         }
 
 
-        return "redirect:/offer/wholesaler/orders";
+
     }
 
     @Transactional

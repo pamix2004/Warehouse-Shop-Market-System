@@ -1,11 +1,191 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Home Page</title>
+    <title>TradeConnect | Wholesale Marketplace</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        body { background-color: #ffffff; color: #333; }
+        .hero-section { padding: 80px 0 60px; text-align: center; }
+        .hero-title { font-weight: 700; font-size: 2.5rem; margin-bottom: 20px; }
+        .hero-subtitle { color: #666; max-width: 700px; margin: 0 auto 30px; line-height: 1.6; }
+
+
+
+        .btn-primary-custom { background-color: #0066cc; border: none; padding: 10px 25px; }
+        .btn-secondary-custom { background-color: #e9ecef; border: 1px solid #ced4da; color: #333; padding: 10px 25px; }
+
+                    /* Darkens the blue button slightly on hover */
+            .btn-primary-custom:hover {
+                background-color: #0052a3;
+                color: white;
+            }
+
+            /* Darkens the grey button and border slightly on hover */
+            .btn-secondary-custom:hover {
+                background-color: #dee2e6;
+                border-color: #adb5bd;
+                color: #000;
+            }
+
+        .divider-text { border-top: 1px solid #dee2e6; margin-top: 50px; padding-top: 20px; font-style: italic; color: #777; }
+
+        .how-it-works { padding: 60px 0; background-color: #fff; }
+        .section-title { font-weight: 700; margin-bottom: 40px; text-align: center; }
+
+        .step-card {
+            border: 1px solid #e0e0e0;
+            padding: 40px 20px;
+            height: 100%;
+            transition: transform 0.2s;
+            text-align: center;
+        }
+        .step-icon { font-size: 2.5rem; margin-bottom: 20px; display: block; }
+        .step-card h4 { font-size: 1.25rem; font-weight: 600; margin-bottom: 15px; }
+        .step-card p { font-size: 0.9rem; color: #555; line-height: 1.5; }
+    </style>
 </head>
 <body>
-<nav th:insert="base ::navbar"></nav>
+<nav th:insert="~{base :: navbar}"></nav>
+
+<header class="hero-section container">
+    <h1 class="hero-title">Wholesale Marketplace<br>for Modern Retail</h1>
+    <p class="hero-subtitle">
+        TradeConnect brings wholesalers and retail stores together on one simple platform.
+        Browse offers, build baskets, and place orders — all in one place.
+    </p>
+    <div class="d-flex justify-content-center gap-3">
+        <a href="/offer/account" class="btn btn-primary-custom text-white">Get Started</a>
+
+    </div>
+
+    <div class="divider-text mt-3">
+        No middlemen. No complexity. Just direct wholesale trade.
+    </div>
+</header>
+
+<hr class="container my-1" style="opacity: 0.1;">
+
+<section class="how-it-works container">
+    <h2 class="section-title">How It Works</h2>
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="step-card">
+                <span class="step-icon">📦</span>
+                <h4>Wholesalers Publish Offers</h4>
+                <p>Wholesalers list their products with prices, available quantities, and minimum order amounts. Manage your catalog in minutes.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="step-card">
+                <span class="step-icon">🛒</span>
+                <h4>Stores Browse & Order</h4>
+                <p>Retail stores search available offers, add items to per-wholesaler baskets, and place orders with a single click.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="step-card">
+                <span class="step-icon">📋</span>
+                <h4>Track Orders & Payments</h4>
+                <p>Both sides track order status — ordered, in progress, delivered. Filter by date, status, and wholesaler for full visibility.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+
+<section class="container mb-5">
+    <h2 class="section-title">Built for Both Sides</h2>
+    <div class="row g-4 justify-content-center">
+        <div class="col-md-5">
+            <div class="step-card text-start p-4">
+                <h5 class="fw-bold mb-3">For Wholesalers</h5>
+                <hr>
+                <ul class="list-unstyled lh-lg">
+                    <li>Publish and manage product offers</li>
+                    <li>Set prices, available quantities, and minimums</li>
+                    <li>View and manage incoming orders</li>
+                    <li>Update order statuses in real time</li>
+                    <li>Filter orders by store, date, and status</li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-md-5">
+            <div class="step-card text-start p-4">
+                <h5 class="fw-bold mb-3">For Retail Stores</h5>
+                <hr>
+                <ul class="list-unstyled lh-lg">
+                    <li>Browse offers from multiple wholesalers</li>
+                    <li>Add items to separate per-wholesaler baskets</li>
+                    <li>Place orders individually or all at once</li>
+                    <li>Track order history and payment status</li>
+                    <li>Search and filter available products</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="container py-5">
+    <h2 class="section-title">Simple, Functional Interface</h2>
+    <div class="table-responsive shadow-sm">
+        <table class="table table-bordered align-middle">
+            <thead class="table-light">
+            <tr>
+                <th>Product</th>
+                <th>Wholesaler</th>
+                <th>Price</th>
+                <th>Available</th>
+                <th>Min. Order</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td>Organic Apples</td>
+                <td>FreshFoods Co.</td>
+                <td>$2.50</td>
+                <td>500</td>
+                <td>50</td>
+            </tr>
+            <tr>
+                <td>Whole Wheat Flour</td>
+                <td>GrainMasters</td>
+                <td>$1.20</td>
+                <td>1,000</td>
+                <td>100</td>
+            </tr>
+            <tr>
+                <td>Olive Oil (1L)</td>
+                <td>Mediterranean Imports</td>
+                <td>$8.99</td>
+                <td>200</td>
+                <td>20</td>
+            </tr>
+            <tr>
+                <td>Free Range Eggs (30)</td>
+                <td>Farm Direct</td>
+                <td>$5.50</td>
+                <td>300</td>
+                <td>10</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    <p class="text-center text-muted small mt-2">† A preview of the offers table. Log in to browse the full catalog.</p>
+</section>
+
+<footer class="bg-light py-5 mt-5 border-top">
+    <div class="container text-center">
+        <h3 class="fw-bold mb-3">Ready to streamline your wholesale orders?</h3>
+        <p class="text-muted mb-4">Join TradeConnect today — it's free to get started.</p>
+        <div class="d-flex justify-content-center gap-3">
+            <a href="/auth/register" class="btn btn-primary-custom text-white">Sign Up Now</a>
+            <a href="/auth/login" class="btn btn-secondary-custom">Log In</a>
+        </div>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

@@ -111,7 +111,7 @@ public class AuthServiceController {
                     .build();
 
             response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
-
+            System.out.println("Chyba sie udalo zalogowac");
             return "redirect:/offer/account";
 
         } catch (org.springframework.security.authentication.DisabledException e) {

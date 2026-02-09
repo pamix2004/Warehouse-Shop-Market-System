@@ -1,7 +1,7 @@
 let originalOrders = [];
 let displayedOrders = [];
 let currentPage = 1;
-const pageSize = 10; // Change this to 5, 20, etc.
+const pageSize = 10;
 
 function copyOrders() {
     const src = window.myAppData?.orders ?? [];
@@ -23,24 +23,22 @@ function renderOrdersTable(ordersArray) {
     const startIndex = (currentPage - 1) * pageSize;
     const endIndex = Math.min(startIndex + pageSize, totalOrders);
 
-    // 3. Update the "Showing X-Y of Z" label
+    // 3. Update the label
     if (infoSpan) {
         if (totalOrders === 0) {
             infoSpan.textContent = "No orders found.";
         } else {
-            // (startIndex + 1) because users count from 1, not 0
             infoSpan.textContent = `Showing ${startIndex + 1}-${endIndex} of ${totalOrders} orders`;
         }
     }
 
-    // 4. Get only the items for the current page
+    // 4. Get items for current page
     const paginatedItems = ordersArray.slice(startIndex, endIndex);
 
     // 5. Build the rows
     paginatedItems.forEach(o => {
         const row = tbody.insertRow();
 
-        // Order ID, Store, and Date
         row.insertCell().textContent = o.id ?? "";
         row.insertCell().textContent = o.storeName ?? "";
         row.insertCell().textContent = o.orderDate ?? "";
@@ -53,10 +51,8 @@ function renderOrdersTable(ordersArray) {
         badge.textContent = o.status ?? "";
         statusCell.appendChild(badge);
 
-        // Payment Status
         row.insertCell().textContent = o.paymentStatus ?? "";
 
-        // Price formatting
         const price = o.totalPrice != null ? Number(o.totalPrice).toFixed(2) : "0.00";
         row.insertCell().textContent = `${price} USD`;
 
@@ -84,7 +80,6 @@ function renderOrdersTable(ordersArray) {
         `;
     });
 
-    // 6. Refresh the navigation buttons at the bottom
     renderPaginationControls(totalOrders);
 }
 
@@ -94,25 +89,20 @@ function renderPaginationControls(totalItems) {
 
     paginationUl.innerHTML = "";
     const totalPages = Math.ceil(totalItems / pageSize);
+    if (totalPages <= 1) return;
 
-    if (totalPages <= 1) return; // Hide if only one page
-
-    // Previous Button
     createPageItem(paginationUl, "«", currentPage > 1, () => {
         currentPage--;
         renderOrdersTable(displayedOrders);
     });
 
-    // Page Numbers
     for (let i = 1; i <= totalPages; i++) {
-        const isActive = (i === currentPage);
         createPageItem(paginationUl, i, true, () => {
             currentPage = i;
             renderOrdersTable(displayedOrders);
-        }, isActive);
+        }, i === currentPage);
     }
 
-    // Next Button
     createPageItem(paginationUl, "»", currentPage < totalPages, () => {
         currentPage++;
         renderOrdersTable(displayedOrders);
@@ -122,7 +112,6 @@ function renderPaginationControls(totalItems) {
 function createPageItem(container, text, enabled, onClick, isActive = false) {
     const li = document.createElement("li");
     li.className = `page-item ${enabled ? '' : 'disabled'} ${isActive ? 'active' : ''}`;
-
     const a = document.createElement("a");
     a.className = "page-link";
     a.href = "#";
@@ -131,7 +120,6 @@ function createPageItem(container, text, enabled, onClick, isActive = false) {
         e.preventDefault();
         if (enabled) onClick();
     });
-
     li.appendChild(a);
     container.appendChild(li);
 }
@@ -157,19 +145,70 @@ function applyAllFilters() {
         return matchesStore && matchesId && matchesStatus && matchesDate;
     });
 
-    // Reset to page 1 whenever filters change
     currentPage = 1;
     renderOrdersTable(displayedOrders);
 }
 
-// Initial Load
+// --- INITIAL LOAD & EVENT LISTENERS ---
 document.addEventListener("DOMContentLoaded", () => {
     copyOrders();
     renderOrdersTable(displayedOrders);
 
+    // 1. Setup Filters
     const filterIds = ["filterStore", "filterOrderId", "filterDateFrom", "filterDateTo", "filterStatus"];
     filterIds.forEach(id => {
         const el = document.getElementById(id);
         if (el) el.addEventListener("input", applyAllFilters);
     });
+
+    // 2. Setup Event Delegation for the Status Update Forms
+// 2. Setup Event Delegation for the Status Update Forms
+    const tbody = document.getElementById("ordersTbody");
+    if (tbody) {
+        tbody.addEventListener("submit", async (event) => {
+            if (event.target.tagName === 'FORM') {
+                event.preventDefault(); // Stop page reload
+
+                const form = event.target;
+                const formData = new FormData(form);
+                const button = form.querySelector('button');
+
+                // Disable button to prevent double-clicks
+                button.disabled = true;
+
+                try {
+                    const response = await fetch(form.action, {
+                        method: 'POST',
+                        body: formData // Sends orderId and status
+                    });
+
+                    const result = await response.json(); // Assumes your controller returns JSON
+
+                    if (response.ok) {
+                        // Success! (200 OK)
+                        alert("Success: " + result.message);
+
+                        // Update the local data so the UI reflects the change
+                        const orderId = formData.get('orderId');
+                        const newStatus = formData.get('status');
+                        const order = originalOrders.find(o => o.id == orderId);
+                        if (order) order.status = newStatus;
+
+                        renderOrdersTable(displayedOrders);
+                    } else {
+                        // Error! (400 Bad Request from your Service)
+                        alert("Cannot update status: " + result.message);
+
+                        // Reset the table to show the original status in the dropdown
+                        renderOrdersTable(displayedOrders);
+                    }
+                } catch (error) {
+                    console.error("Network error:", error);
+                    alert("System error. Please try again later.");
+                } finally {
+                    button.disabled = false;
+                }
+            }
+        });
+    }
 });

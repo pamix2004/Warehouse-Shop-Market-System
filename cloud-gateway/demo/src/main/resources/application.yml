@@ -28,3 +28,10 @@ spring:
             - Path=/auth/**
           filters:
             - PreserveHostHeader
+
+        - id: home-route
+          uri: lb://AUTH-SERVICE
+          predicates:
+            - Path=/
+          filters:
+            - PreserveHostHeader

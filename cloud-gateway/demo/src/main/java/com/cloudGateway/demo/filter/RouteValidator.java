@@ -20,15 +20,24 @@ public class RouteValidator {
             "/jwt/verifyJWTToken",
             "/email/sendEmail",
             "/eureka",
+            "/",
             "/offer/testCSS",
             "/css/",
-            "/js/**",
-            "/**/*.js"
+            "/js/"
     );
 
     public Predicate<ServerHttpRequest> isSecured =
-            request -> openApiEndpoints
-                    .stream()
-                    .noneMatch(uri -> request.getURI().getPath().contains(uri));
-
+            request -> {
+                String path = request.getURI().getPath();
+                return openApiEndpoints
+                        .stream()
+                        .noneMatch(uri -> {
+                            // If the open endpoint is just "/", only match exact "/"
+                            if (uri.equals("/")) {
+                                return path.equals("/");
+                            }
+                            // Otherwise check if the path starts with the open endpoint
+                            return path.startsWith(uri);
+                        });
+            };
 }

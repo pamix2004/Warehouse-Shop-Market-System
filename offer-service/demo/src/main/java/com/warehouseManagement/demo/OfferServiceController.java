@@ -13,6 +13,7 @@ import java.time.LocalDate;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
@@ -384,13 +385,22 @@ public class OfferServiceController {
 
 
     @PostMapping("/wholesaler/orders/status")
-    public String updateOrderStatus(@RequestHeader("X-User-Id") int userId,
-                                    @RequestParam int orderId,
-                                    @RequestParam String status) {
+    @ResponseBody
+    public ResponseEntity<?> updateOrderStatus(@RequestHeader("X-User-Id") int userId,
+                                               @RequestParam int orderId,
+                                               @RequestParam String status) {
+        try {
+            // Your Service Logic
+            orderService.updateOrderStatus(userId, orderId, status);
 
-        orderService.updateOrderStatus(userId, orderId, status);
+            // Return JSON Success
+            return ResponseEntity.ok(Map.of("message", "Status updated successfully!"));
 
-        return "redirect:/offer/wholesaler/orders";
+        } catch (Exception e) {
+            // This catches your service errors (like "Payment missing")
+            // and returns them as a 400 Bad Request JSON
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
     }
 
 
