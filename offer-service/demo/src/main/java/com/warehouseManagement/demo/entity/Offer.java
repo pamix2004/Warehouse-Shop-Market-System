@@ -1,5 +1,6 @@
 package com.warehouseManagement.demo.entity;
 
+import com.warehouseManagement.demo.OfferState;
 import jakarta.persistence.*;
 
 @Entity
@@ -70,6 +71,19 @@ public class Offer {
 
     public void setProduct(Product product) {
         this.product = product;
+    }
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "state")
+    private OfferState state;
+
+    // Getter and Setter
+    public OfferState getState() {
+        return state;
+    }
+
+    public void setState(OfferState state) {
+        this.state = state;
     }
 
     // ===== toString() =====

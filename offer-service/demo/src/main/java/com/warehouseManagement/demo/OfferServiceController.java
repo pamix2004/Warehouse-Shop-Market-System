@@ -7,6 +7,7 @@ import com.warehouseManagement.demo.entity.*;
 import com.warehouseManagement.demo.repo.*;
 import com.warehouseManagement.demo.repo.CartOfferRepository;
 import com.warehouseManagement.demo.services.CartService;
+import com.warehouseManagement.demo.services.OfferService;
 import com.warehouseManagement.demo.services.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import java.time.LocalDate;
@@ -74,7 +75,8 @@ public class OfferServiceController {
     @Autowired
     CartService cartService;
 
-
+    @Autowired
+    OfferService offerService;
 
 
 
@@ -91,7 +93,7 @@ public class OfferServiceController {
             model.addAttribute("est_name",storeEntity.getName());
             model.addAttribute("address",storeEntity.getAddress());
 
-            model.addAttribute("offers", offerRepository.findAll());
+            model.addAttribute("offers",offerService.getAllActiveOffers());
 
 
             List<CartInformationDTO> cartList = new ArrayList<>();
@@ -149,10 +151,13 @@ public class OfferServiceController {
 
 
 
+
         } else if (role.equals("wholesaler")) {
             Wholesaler wsEntity = wholesalerRepository.findByUser_Id(userEntity.getId());
             model.addAttribute("est_name", wsEntity.getName());
             model.addAttribute("address", wsEntity.getAddress());
+            model.addAttribute("possibleOfferStates",OfferState.values());
+
 
             // OFERTY HURTOWNIKA
             model.addAttribute("offers", offerRepository.findByWholesaler(wsEntity));
@@ -172,6 +177,12 @@ public class OfferServiceController {
 
 
 
+    @ResponseBody
+    @PostMapping("/updateState")
+    public ResponseEntity<?> changeOfferStatus(@RequestHeader("X-User-Id") int userId,int offerId,OfferState desiredState){
+        offerService.changeOfferState(userId,offerId,desiredState);
+        return ResponseEntity.ok().build();
+    }
 
 
     @PostMapping("/account/add")
@@ -382,7 +393,17 @@ public class OfferServiceController {
 
 
 
-
+    @PostMapping("/changeOffer")
+    @ResponseBody
+    public ResponseEntity<?> changeOffer(@RequestHeader("X-User-Id") int userId,@RequestParam int offerId,@RequestParam float price,@RequestParam int availableQuantity,@RequestParam int minimalQuantity) {
+        try{
+            offerService.changeOffer(userId, offerId, price, availableQuantity, minimalQuantity);
+            return ResponseEntity.ok(Map.of());
+        }
+        catch (Exception e){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
 
     @PostMapping("/wholesaler/orders/status")
     @ResponseBody

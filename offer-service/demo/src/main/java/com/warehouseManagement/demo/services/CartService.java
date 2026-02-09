@@ -148,6 +148,11 @@ public class CartService {
         cartOfferRepository.save(cp);
     }
 
+    //
+    public void removeOfferFromCarts(Offer offer) {
+        cartOfferRepository.deleteByOffer_Id(offer.getId());
+    }
+
 
 
 }
