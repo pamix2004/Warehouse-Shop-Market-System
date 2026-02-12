@@ -29,18 +29,20 @@ public class EmailServiceController {
         mailSender.send(message);
     }
 
+    public static class EmailRequest {
+        public String toEmail;
+        public String subject;
+        public String body;
+    }
+
     @PostMapping("/sendEmail")
-    public String sendEmail(
-            @RequestParam String toEmail,
-            @RequestParam String subject,
-            @RequestParam String body
-            )
+    public String sendEmail(@RequestBody EmailRequest emailRequest)
     {
-        System.out.println("Sending email to: " + toEmail);
-        System.out.println("Sending email subject: " + subject);
-        System.out.println("Sending email body: " + body);
+        System.out.println("Sending email to: " + emailRequest.toEmail);
+        System.out.println("Sending email subject: " + emailRequest.subject);
+        System.out.println("Sending email body: " + emailRequest.body);
         System.out.println("Trying to send email-POST");
-        sendSimpleEmail(toEmail, subject, body);
+        sendSimpleEmail(emailRequest.toEmail, emailRequest.subject, emailRequest.body);
         System.out.println("It is invoked after sending email!");
         return "emailSent";
     }

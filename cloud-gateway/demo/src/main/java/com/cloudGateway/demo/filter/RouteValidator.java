@@ -21,6 +21,8 @@ public class RouteValidator {
             "/email/sendEmail",
             "/eureka",
             "/",
+            "/payment/stripeWebhook",
+            "/payment/create-checkout-session",
             "/offer/testCSS",
             "/css/",
             "/js/"

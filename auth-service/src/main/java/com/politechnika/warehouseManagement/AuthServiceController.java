@@ -29,7 +29,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.Duration;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.hibernate.cfg.JdbcSettings.URL;
 
@@ -321,17 +323,19 @@ public class AuthServiceController {
                 id
         );
 
-        String link = "http://localhost:8085/auth/verify?token="+token;
-        System.out.println("generated link: " + link);
+        String link = "http://localhost:8085/auth/verify?token=" + token;
 
-        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-        params.add("toEmail",recipient);
-        params.add("subject", "Verification Confirmation");
-        params.add("body",link);
+// 1. Use HashMap to ensure it's treated as a JSON object
+        Map<String, String> params = new HashMap<>();
+        params.put("toEmail", recipient);
+        params.put("subject", "Verification Confirmation");
+        params.put("body", link);
 
-        String URL = getEmailServiceUrl()+"/email/sendEmail";
-        //Calling the other service (email-service)
-        String result = new RestTemplate().postForObject(URL, params, String.class);
+        String URL = getEmailServiceUrl() + "/email/sendEmail";
+
+// 2. Reuse your existing RestTemplate bean if possible,
+// rather than 'new RestTemplate()' for better performance.
+        String result = restTemplate.postForObject(URL, params, String.class);
     }
 
 

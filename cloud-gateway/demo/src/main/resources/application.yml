@@ -35,3 +35,10 @@ spring:
             - Path=/
           filters:
             - PreserveHostHeader
+        - id: payment-service
+          uri: lb://PAYMENT-SERVICE
+          predicates:
+            - Path=/payment/**
+          filters:
+            - AuthenticationFilter
+            - PreserveHostHeader

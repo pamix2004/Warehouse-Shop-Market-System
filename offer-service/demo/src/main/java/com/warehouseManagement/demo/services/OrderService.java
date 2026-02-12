@@ -47,76 +47,77 @@ public class OrderService {
 
 
     @Transactional
-/**
- * @param storeId id of the store that places the order
- * @param carts carts that store wants to process
- */
-    public String placeOrder(int storeId, List<Cart> carts) {
-        // 1. Fetch the store or throw error if missing
+    public Payment placeOrder(int storeId, List<Cart> carts) {
         Store store = storeRepository.findById(storeId)
                 .orElseThrow(() -> new RuntimeException("Store not found with ID: " + storeId));
 
-        // 2. CREATE ONE PAYMENT for all carts in this request
-        // This allows one payment to be associated with multiple orders
         Payment payment = new Payment();
         payment.setStatus(PaymentStatus.pending);
+
         payment = paymentRepository.save(payment);
 
         for (Cart cart : carts) {
-            // 3. Create and save the Order first to get an ID
+            List<CartOffer> itemsInCart = cartOfferRepository.findAllByCart_CartId(cart.getCartId());
+
+            // Validation: Don't process empty carts
+            if (itemsInCart.isEmpty()) continue;
+
+            // 1. Initialize the Order
             Order newOrder = new Order();
             newOrder.setOrderDate(LocalDate.now());
             newOrder.setStatus("Ordered");
             newOrder.setStore(store);
-            newOrder.setPrice(BigDecimal.ZERO);
-//            newOrder = orderRepository.save(newOrder);
 
-            List<CartOffer> itemsInCart = cartOfferRepository.findAllByCart_CartId(cart.getCartId());
+            // 2. FIX: Set the wholesaler BEFORE the first save
+            // Assuming one cart = one wholesaler.
+            Wholesaler wholesaler = itemsInCart.get(0).getOffer().getWholesaler();
+            newOrder.setWholesaler(wholesaler);
+
+            // 3. Save the order once to get the ID for the OrderOffers
+            newOrder.setPrice(BigDecimal.valueOf(0));
+            newOrder = orderRepository.save(newOrder);
+
             double runningTotal = 0.0;
-
-            // 4. Process items, create OrderOffers, and calculate total
             for (CartOffer cartOffer : itemsInCart) {
-                // Check availability
                 Offer currentOffer = offerRepository.findById(cartOffer.getOffer().getId());
-                newOrder.setWholesaler(currentOffer.getWholesaler());
-                orderRepository.save(newOrder);
 
+                // Availability Check
                 if (cartOffer.getQuantity() > currentOffer.getAvailable_quantity()) {
-                    throw new RuntimeException("Requested quantity for " + currentOffer.getId() + " exceeds availability");
+                    throw new RuntimeException("Quantity exceeds availability for item: " + currentOffer.getId());
                 }
 
-                int leftAvailableQuantity = currentOffer.getAvailable_quantity() - cartOffer.getQuantity();
-                currentOffer.setAvailable_quantity(leftAvailableQuantity);
+                // Update Stock
+                currentOffer.setAvailable_quantity(currentOffer.getAvailable_quantity() - cartOffer.getQuantity());
                 offerRepository.save(currentOffer);
 
+                // Create Order Item
                 OrderOffer orderOffer = new OrderOffer();
                 orderOffer.setOrder(newOrder);
                 orderOffer.setOffer(cartOffer.getOffer());
                 orderOffer.setQuantity(cartOffer.getQuantity());
+
                 orderOfferRepository.save(orderOffer);
 
                 runningTotal += (cartOffer.getOffer().getPrice() * cartOffer.getQuantity());
             }
 
-            // 5. Update Order price with final total
+            // 4. Update final price
             newOrder.setPrice(BigDecimal.valueOf(runningTotal));
             orderRepository.save(newOrder);
 
-            // 6. LINK THE ORDER TO THE SHARED PAYMENT
-            // This populates the payment_order junction table
+            // 5. Link Payment
             PaymentOrder po = new PaymentOrder();
             po.setOrder(newOrder);
             po.setPayment(payment);
+
             paymentOrderRepository.save(po);
 
-            // 7. CLEANUP: Delete the items and the Cart itself
+            // Cleanup
             cartOfferRepository.deleteAll(itemsInCart);
             cartRepository.delete(cart);
-
-            System.out.println("Order " + newOrder.getOrderId() + " linked to Payment " + payment.getPaymentId());
         }
 
-        return "Orders placed and linked to Payment ID: " + payment.getPaymentId() + " successfully.";
+        return payment;
     }
 
     private boolean isValidStatusChange(String current, String next,Order order) {

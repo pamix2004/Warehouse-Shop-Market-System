@@ -3,6 +3,8 @@ package com.warehouseManagement.demo;
 
 import com.warehouseManagement.demo.Exceptions.ProductAlreadyExistsException;
 import com.warehouseManagement.demo.dto.*;
+import org.springframework.http.*;
+import org.springframework.web.reactive.function.client.WebClient;
 import com.warehouseManagement.demo.entity.*;
 import com.warehouseManagement.demo.repo.*;
 import com.warehouseManagement.demo.repo.CartOfferRepository;
@@ -17,8 +19,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -228,15 +228,58 @@ public class OfferServiceController {
         return "test";
     }
 
+    public class CheckoutRequest {
+        private int paymentId;
+        private String userEmail;
+
+        public CheckoutRequest(int paymentId, String userEmail) {
+            this.paymentId = paymentId;
+            this.userEmail = userEmail;
+        }
+
+        // getters and setters
+        public int getPaymentId() { return paymentId; }
+        public void setPaymentId(int paymentId) { this.paymentId = paymentId; }
+        public String getUserEmail() { return userEmail; }
+        public void setUserEmail(String userEmail) { this.userEmail = userEmail; }
+    }
+
     @PostMapping("/purchaseAllCarts")
     public String purchaseOffer(@RequestHeader("X-User-Id") int userId,
                                 @ModelAttribute OfferPurchaseDTO purchaseDTO,
                                 Model model) {
         System.out.println(orderService.testOrderingu());
 
+        User user = userRepository.findById(userId);
         Store store = storeRepository.findByUser_Id(userId);
+
          List<Cart> allCarts = cartRepository.findByStore(store);
-         orderService.placeOrder(store.getId(),allCarts);
+         System.out.println("to sie wywolalo");
+         Payment payment = orderService.placeOrder(store.getId(),allCarts);
+        String paymentServiceURL = "http://10.10.10.70:8085/payment/create-checkout-session";
+
+// 2. Use RestTemplate to send a POST (or GET) request
+        RestTemplate restTemplate = new RestTemplate();
+
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
+            CheckoutRequest checkoutRequest = new CheckoutRequest(payment.getPaymentId(),user.getEmail());
+
+            HttpEntity<CheckoutRequest> requestEntity = new HttpEntity<>(checkoutRequest, headers);
+
+            // Send POST request
+            String checkoutUrl = restTemplate.postForObject(paymentServiceURL, requestEntity, String.class);
+
+            // Redirect the user to Stripe checkout
+            return "redirect:" + checkoutUrl;
+
+        } catch (Exception e) {
+            System.err.println("Error calling payment service: " + e.getMessage());
+        }
+
+
 
         System.out.println("All carts");
         return "redirect:/offer/account";
@@ -271,7 +314,8 @@ public class OfferServiceController {
             dto.setStatus(order.getStatus());
             dto.setTotalPrice(order.getPrice());
             dto.setWholesalerName(order.getWholesaler().getName());
-            System.out.println("id orderu = "+offerRepository.findById(order.getOrderId())+"id wholeseerla "+offerRepository.findById(order.getOrderId()).get().getWholesaler().getId());
+            //System.out.println("id orderu = "+offerRepository.findById(order.getOrderId())+"id wholeseerla "+offerRepository.findById(order.getOrderId()).get().getWholesaler().getId());
+            System.out.println("id orderu "+order.getOrderId());
             //dto.setWholesalerName(offerRepository.findById(order.getOrderId()).get().getWholesaler().getName());
             List<OrderOffer> ord =  orderOfferRepository.findByOrder(order);
             //dto.setWholesalerName(ord.get(0).getOffer().getWholesaler().getName());
@@ -361,6 +405,39 @@ public class OfferServiceController {
                         })
                         .toList()
         );
+
+        System.out.println(                orderOfferRepository.findByOffer_Wholesaler(wholesaler)
+                .stream()
+                .map(OrderOffer::getOrder) // Get the Order from the OrderOffer
+                .filter(order -> !"CANCELLED".equals(order.getStatus()))
+                .distinct()
+                .map(order -> {
+                    // Create the DTO
+                    OrderSummaryDTO dto = new OrderSummaryDTO();
+                    dto.setId(order.getOrderId());
+                    dto.setOrderDate(order.getOrderDate());
+                    dto.setStatus(order.getStatus());
+                    dto.setTotalPrice(order.getPrice());
+                    dto.setStoreName(order.getStore().getName());
+
+                    // Fetch and set the Payment Status
+//                            Szukaj tutaj
+//                            PaymentStatus pStatus = paymentRepository.findByOrder_OrderId(order.getOrderId())
+//                                    .map(Payment::getStatus)
+//                                    .orElse(PaymentStatus.pending);
+//                            dto.setPaymentStatus(pStatus);
+
+                    PaymentOrder po = paymentOrderRepository.findByOrder(order)
+                            .orElseThrow(() -> new RuntimeException("No payment found for this order"));
+
+                    Payment payment = po.getPayment();
+                    // Now you have the payment object and can do payment.getPaymentId(), etc.
+                    dto.setPaymentStatus(payment.getStatus());
+
+                    return dto;
+                })
+                .toList());
+
         return "wholesaler-orders";
     }
 
