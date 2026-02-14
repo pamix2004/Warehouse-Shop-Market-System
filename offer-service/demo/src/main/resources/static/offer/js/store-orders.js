@@ -9,6 +9,28 @@ function copyOrders() {
     displayedOrders = [...src];
 }
 
+async function handleCheckout(orderId) {
+    try {
+        const response = await fetch('/payment/getLinkForCheckout', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(orderId)
+        });
+
+        if (response.ok) {
+            const checkoutUrl = await response.text();
+            window.location.href = checkoutUrl; // Redirecting is usually better than an alert!
+        } else {
+            // Read the actual error message from the body
+            const errorMessage = await response.text();
+            alert("Server error: " + errorMessage);
+        }
+    } catch (error) {
+        console.error("Network error:", error);
+        alert("An error occurred. Check your connection.");
+    }
+}
+
 function renderOrdersTable(ordersArray) {
     const tbody = document.getElementById("ordersTbody");
     const infoSpan = document.getElementById("paginationInfo");
@@ -45,8 +67,28 @@ function renderOrdersTable(ordersArray) {
         badge.textContent = o.status ?? "";
         statusCell.appendChild(badge);
 
-        // 5. Payment Status
-        row.insertCell().textContent = o.paymentStatus ?? "";
+        // 5. Payment Status (Clickable only if Pending)
+        const paymentCell = row.insertCell();
+        const paymentBtn = document.createElement("button");
+        const currentPaymentStatus = (o.paymentStatus ?? "").trim();
+
+        // Normalize status for comparison
+        const isPending = currentPaymentStatus.toLowerCase() === "pending";
+
+        if (isPending) {
+            // ACTIVE STATE: Allow checkout
+            paymentBtn.className = "btn btn-link p-0 text-decoration-none";
+            paymentBtn.textContent = currentPaymentStatus;
+            paymentBtn.onclick = () => handleCheckout(o.id);
+        } else {
+            // INACTIVE STATE: Just show text, no link/button behavior
+            paymentBtn.className = "btn p-0 text-muted text-decoration-none cursor-default";
+            paymentBtn.style.cursor = "default";
+            paymentBtn.disabled = true;
+            paymentBtn.textContent = currentPaymentStatus || "Paid"; // Fallback text
+        }
+
+        paymentCell.appendChild(paymentBtn);
 
         // 6. Price
         const price = o.totalPrice != null ? Number(o.totalPrice).toFixed(2) : "0.00";

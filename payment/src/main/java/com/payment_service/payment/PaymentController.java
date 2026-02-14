@@ -7,6 +7,7 @@ import com.payment_service.payment.repository.PaymentRepository;
 import com.payment_service.payment.services.GatewayUrlResolver;
 import com.stripe.Stripe;
 import com.stripe.exception.SignatureVerificationException;
+import com.stripe.exception.StripeException;
 import com.stripe.model.Event;
 import com.stripe.model.EventDataObjectDeserializer;
 import com.stripe.model.PaymentIntent;
@@ -15,9 +16,11 @@ import com.stripe.model.checkout.Session;
 import com.stripe.net.ApiResource;
 import com.stripe.net.Webhook;
 import com.stripe.param.checkout.SessionCreateParams;
+import com.stripe.param.checkout.SessionExpireParams;
 import com.stripe.param.checkout.SessionRetrieveParams;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
@@ -109,6 +112,51 @@ public class PaymentController {
 
     }
 
+    @PostMapping("/getLinkForCheckout")
+    @ResponseBody
+    public ResponseEntity<String> getLinkForCheckout(@RequestBody int orderId) {
+
+        try {
+            Payment payment = paymentOrderRepository.findPaymentByOrderId(orderId);
+            String sessionId = payment.getStripeSessionId();
+            System.out.println("user wants to get link for checkout with sessionId: " + sessionId);
+
+            Stripe.apiKey =stripeTestSecretKey;
+
+            Session session = Session.retrieve(sessionId);
+
+            // 2. Check if the session is expired or the URL is missing
+            String checkoutUrl = session.getUrl();
+            if (checkoutUrl == null || "expired".equals(session.getStatus())) {
+                return ResponseEntity.status(HttpStatus.GONE)
+                        .body("The checkout link has expired. It's already paid.");
+            }
+
+            System.out.println(session.getUrl());
+            return ResponseEntity.ok(session.getUrl());
+
+
+        } catch (StripeException e) {
+            return ResponseEntity.badRequest().body("Failed to retrieve the payment session. Please try again or contact support.");        }
+
+
+    }
+
+
+    @PostMapping("/expire-checkout")
+    public ResponseEntity<?> expireCheckout(@RequestBody String sessionId){
+        try{
+            System.out.println("User wants to expire checkout "+sessionId);
+            Session resource =
+                    Session.retrieve(sessionId);
+            SessionExpireParams params = SessionExpireParams.builder().build();
+            Session session = resource.expire(params);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+
+        return ResponseEntity.ok().build();
+    }
 
     @PostMapping("/stripeWebhook")
     public ResponseEntity<?> handleStripeWebhook(@RequestBody String payload,@RequestHeader("Stripe-Signature") String sigHeader) {
@@ -211,7 +259,7 @@ public class PaymentController {
         String userEmail = checkoutRequest.userEmail;
         long price = checkoutRequest.price;
 
-        Stripe.apiKey = "sk_test_51SnIukC5Gg4G70G2pvf9hpuvx9tfTMgLJnggFCi2suk7rlczOskEdq7SIHreXfdIqnfe4JdJaQMloCoNaK5Ma3hd00CgaStEcJ";
+        Stripe.apiKey = stripeTestSecretKey;
         System.out.println("User wants to complete payment_id" + paymentId);
 
         try {

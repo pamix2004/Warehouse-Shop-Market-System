@@ -5,15 +5,21 @@ import com.warehouseManagement.demo.PaymentStatus;
 import com.warehouseManagement.demo.entity.*;
 import com.warehouseManagement.demo.repo.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 
@@ -205,6 +211,12 @@ public class OrderService {
 
                 if (paymentOrder.getPayment().getStatus() != PaymentStatus.succeeded) {
                     statusMessage = "Cannot change status if payment has not been completed";
+
+                    //If payment has not yet been cancelled and successful we can cancel the order
+                    if(paymentOrder.getPayment().getStatus() == PaymentStatus.pending && desiredStatus.equals("Cancelled")){
+                        System.out.println("user wants to cancel order" +order.getOrderId());
+                    }
+
                     isValidStatusChange = false;
                 } else if (!desiredStatus.equals("In progress")) {
                     statusMessage = "From 'Ordered', you can only move to 'In progress'.";
@@ -242,6 +254,23 @@ public class OrderService {
 
     }
 
+    public void callPaymentServiceToExpireCheckout(String checkoutSessionId){
+        String paymentServiceURL = "http://10.10.10.70:8085/payment/expire-checkout";
+
+        // 2. Use RestTemplate to send a POST (or GET) request
+        RestTemplate restTemplate = new RestTemplate();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+
+
+        HttpEntity<String> requestEntity = new HttpEntity<>(checkoutSessionId, headers);
+
+        // Send POST request
+        ResponseEntity<HashMap> response = restTemplate.postForEntity(paymentServiceURL,requestEntity,HashMap.class);
+    }
+
     @Transactional
     public String cancelOrder(int userId, int orderId) {
 
@@ -252,6 +281,10 @@ public class OrderService {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
 
+        PaymentOrder paymentOrder = paymentOrderRepository.findByOrder(order)
+                .orElseThrow(() -> new RuntimeException("Payment not found for given order"));
+
+        Payment payment = paymentOrder.getPayment();
 
 
         //You can only cancel your own order
@@ -263,6 +296,12 @@ public class OrderService {
         if (!"Ordered".equals(order.getStatus())) {
             System.out.println("tutaj jest blad bo dalem UPPERCASE!");
             return "redirect:/offer/orders/" + orderId;
+        }
+
+        //If it has not yet been paid, make sure to close the checkout and set is as cancelled
+        if(payment.getStatus()!=PaymentStatus.succeeded){
+            callPaymentServiceToExpireCheckout(payment.getStripeSessionId());
+            payment.setStatus(PaymentStatus.canceled);
         }
 
         //You should add products to available pool when u cancel

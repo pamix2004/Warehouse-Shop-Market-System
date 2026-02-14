@@ -269,6 +269,24 @@ public class OfferServiceController {
         return "redirect:/offer/account";
     }
 
+    public String callPaymentServiceToGetStripeCheckoutLink(String checkoutSessionId){
+
+        String paymentServiceURL = "http://10.10.10.70:8085/payment/getLinkForCheckout";
+
+        RestTemplate restTemplate = new RestTemplate();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        HttpEntity<String> request = new HttpEntity<>("\"" + checkoutSessionId + "\"", headers);
+
+        ResponseEntity<String> response =
+                restTemplate.postForEntity(paymentServiceURL, request, String.class);
+
+        return response.getBody();
+    }
+
+
 
 
     @GetMapping("/orders")
@@ -288,6 +306,7 @@ public class OfferServiceController {
             dto.setStatus(order.getStatus());
             dto.setTotalPrice(order.getPrice());
             dto.setWholesalerName(order.getWholesaler().getName());
+
             //System.out.println("id orderu = "+offerRepository.findById(order.getOrderId())+"id wholeseerla "+offerRepository.findById(order.getOrderId()).get().getWholesaler().getId());
             System.out.println("id orderu "+order.getOrderId());
             //dto.setWholesalerName(offerRepository.findById(order.getOrderId()).get().getWholesaler().getName());
@@ -309,6 +328,12 @@ public class OfferServiceController {
             Payment payment = po.getPayment();
         // Now you have the payment object and can do payment.getPaymentId(), etc.
             dto.setPaymentStatus(payment.getStatus());
+
+
+
+
+
+
 
 
 

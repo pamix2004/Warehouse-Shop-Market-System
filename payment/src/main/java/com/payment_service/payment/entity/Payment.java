@@ -18,8 +18,7 @@ public class Payment {
     @Column(name = "status", nullable = false)
     private PaymentStatus status = PaymentStatus.pending;
 
-    @Column(name = "payment_intent_id")
-    private String paymentIntentId;
+
 
     // Added the Stripe Session ID mapping
     @Column(name = "stripe_session_id")
