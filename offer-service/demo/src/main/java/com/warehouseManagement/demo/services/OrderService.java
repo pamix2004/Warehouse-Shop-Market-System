@@ -6,6 +6,7 @@ import com.warehouseManagement.demo.entity.*;
 import com.warehouseManagement.demo.repo.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -46,7 +47,7 @@ public class OrderService {
 
 
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Payment placeOrder(int storeId, List<Cart> carts) {
         Store store = storeRepository.findById(storeId)
                 .orElseThrow(() -> new RuntimeException("Store not found with ID: " + storeId));
@@ -113,11 +114,16 @@ public class OrderService {
             paymentOrderRepository.save(po);
 
             // Cleanup
-            cartOfferRepository.deleteAll(itemsInCart);
-            cartRepository.delete(cart);
+//            cartOfferRepository.deleteAll(itemsInCart);
+//            cartRepository.delete(cart);
         }
 
         return payment;
+    }
+
+    private double calculateTotal(){
+
+        return 15d;
     }
 
     private boolean isValidStatusChange(String current, String next,Order order) {
@@ -275,6 +281,10 @@ public class OrderService {
 
         return "redirect:/offer/orders";
     }
+
+
+
+
 
 
 

@@ -153,6 +153,20 @@ public class CartService {
         cartOfferRepository.deleteByOffer_Id(offer.getId());
     }
 
+    public boolean clearCarts(List<Integer>cartIds) {
 
+        Cart cart;
+        //We iterate over the ids of carts that we want to remove
+        for(Integer cartId : cartIds){
+            cart = cartRepository.findById(cartId).orElseThrow(() -> new CartIsNotYoursException("Cart not found"));
+            for(CartOffer cartOffer : cartOfferRepository.findAllByCart_CartId(cartId)) {
+                cartOfferRepository.delete(cartOffer);
+            }
+            cartRepository.delete(cart);
+        }
+        System.out.println("Carts have been cleared");
+
+        return true;
+    }
 
 }

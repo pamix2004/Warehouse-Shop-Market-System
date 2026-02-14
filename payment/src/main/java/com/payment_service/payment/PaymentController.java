@@ -53,7 +53,7 @@ public class PaymentController {
         try{
             //Make sure fulfillment hasn't already been performed for this checkout session
             Payment payment = paymentRepository.findByStripeSessionId(sessionId).orElseThrow(()->new RuntimeException("Payment not found"));
-
+            System.out.println("Co tu nie dziala");
             //We take action only if payment has not been yet processed( still pending)
             if(payment.getStatus()==PaymentStatus.pending){
                 // 1. Setup expansion for both line_items and payment_intent
@@ -69,13 +69,36 @@ public class PaymentController {
                 PaymentIntent paymentIntent = checkoutSession.getPaymentIntentObject();
 
                 if (paymentIntent != null) {
-                    if(paymentIntent.getStatus().equals("succeeded")){
-                        System.out.println("Im fulfilling order");
+                    if ("succeeded".equals(paymentIntent.getStatus())) {
+                        System.out.println("Payment succeeded. Updating local status and calling remote fulfillment...");
+
+                        // 1. Update local database first
                         payment.setStatus(PaymentStatus.succeeded);
                         paymentRepository.save(payment);
-                    }
-                    else{
-                        System.out.println("Im n not fulfilling order");
+
+                        // 2. Call the external endpoint
+                        String url = "http://10.10.10.70:8085/offer/fulfillOrder";
+
+                        int paymentId = payment.getPaymentId();
+
+                        try {
+                            // Sends the int as the request body
+                            ResponseEntity<String> response = restTemplate.postForEntity(url, paymentId, String.class);
+
+                            if (response.getStatusCode().is2xxSuccessful()) {
+                                System.out.println("Remote fulfillment successful: " + response.getBody());
+                            } else {
+                                System.err.println("Remote service returned error: " + response.getStatusCode());
+                                // Optional: Roll back local status or flag for manual review
+                            }
+                        } catch (Exception e) {
+                            System.err.println("Failed to connect to fulfillment service: " + e.getMessage());
+                            // This is a critical point: The payment succeeded but the fulfillment call failed.
+                            // You might want to log this in a 'failed_tasks' table for a retry mechanism.
+                        }
+
+                    } else {
+                        System.out.println("Payment status: " + paymentIntent.getStatus() + ". Fulfillment skipped.");
                     }
                 }
             }
@@ -168,12 +191,14 @@ public class PaymentController {
     public static class CheckoutRequest {
         public int paymentId;
         public String userEmail;
+        public long price;
 
         public CheckoutRequest() {} // Jackson needs default constructor
 
-        public CheckoutRequest(int paymentId, String userEmail) {
+        public CheckoutRequest(int paymentId, String userEmail,long price) {
             this.paymentId = paymentId;
             this.userEmail = userEmail;
+            this.price = price;
         }
 
         // getters/setters if needed
@@ -181,28 +206,30 @@ public class PaymentController {
 
     @PostMapping("/create-checkout-session")
     @ResponseBody
-    public String createCheckoutSession(@RequestBody CheckoutRequest checkoutRequest) {
-        int paymentId =checkoutRequest.paymentId;
+    public ResponseEntity<HashMap<String,String>> createCheckoutSession(@RequestBody CheckoutRequest checkoutRequest) {
+        int paymentId = checkoutRequest.paymentId;
         String userEmail = checkoutRequest.userEmail;
+        long price = checkoutRequest.price;
+
         Stripe.apiKey = "sk_test_51SnIukC5Gg4G70G2pvf9hpuvx9tfTMgLJnggFCi2suk7rlczOskEdq7SIHreXfdIqnfe4JdJaQMloCoNaK5Ma3hd00CgaStEcJ";
-        System.out.println("User wants to complete payment_id"+paymentId);
+        System.out.println("User wants to complete payment_id" + paymentId);
 
         try {
             String baseUrl = gatewayUrlResolver.gatewayBaseUrl();
             SessionCreateParams params = SessionCreateParams.builder()
                     .setMode(SessionCreateParams.Mode.PAYMENT)
-                    .setSuccessUrl(baseUrl+"/payment/success")
-                    .setCancelUrl(baseUrl+"/payment/cancel")
+                    .setSuccessUrl(baseUrl + "/payment/success")
+                    .setCancelUrl(baseUrl + "/payment/cancel")
                     .addLineItem(
                             SessionCreateParams.LineItem.builder()
                                     .setQuantity(1L)
                                     .setPriceData(
                                             SessionCreateParams.LineItem.PriceData.builder()
-                                                    .setCurrency("usd")
-                                                    .setUnitAmount(2000L)
+                                                    .setCurrency("pln")
+                                                    .setUnitAmount(price)
                                                     .setProductData(
                                                             SessionCreateParams.LineItem.PriceData.ProductData.builder()
-                                                                    .setName("T-shirt")
+                                                                    .setName("Wholesaler-store system")
                                                                     .build())
                                                     .build())
                                     .build())
@@ -213,18 +240,20 @@ public class PaymentController {
             Payment payment = paymentRepository.findById(paymentId).orElseThrow(() -> new RuntimeException("Payment not found(create-checkout-session)"));
             payment.setStripeSessionId(session.getId());
             paymentRepository.save(payment);
-            sendMail(userEmail,"Platnosc", session.getUrl());
+            sendMail(userEmail, "Platnosc", session.getUrl());
 
-            System.out.println("I should send confirmation email to "+userEmail);
+            System.out.println("I should send confirmation email to " + userEmail);
 
 
-
-            return session.getUrl();
+            HashMap<String, String> body = new HashMap<>();
+            body.put("stripe-checkout", session.getUrl());
+            return ResponseEntity.ok(body);
 
         } catch (Exception e) {
-            return "error";       }
+            System.out.println("Exception: " + e.getMessage());
+            return ResponseEntity.internalServerError().build();
+        }
+
+
     }
-
-
-
 }

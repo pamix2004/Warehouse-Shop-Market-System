@@ -3,6 +3,7 @@ package com.warehouseManagement.demo;
 
 import com.warehouseManagement.demo.Exceptions.ProductAlreadyExistsException;
 import com.warehouseManagement.demo.dto.*;
+import com.warehouseManagement.demo.services.PurchaseService;
 import org.springframework.http.*;
 import org.springframework.web.reactive.function.client.WebClient;
 import com.warehouseManagement.demo.entity.*;
@@ -14,10 +15,7 @@ import com.warehouseManagement.demo.services.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import java.time.LocalDate;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -77,6 +75,9 @@ public class OfferServiceController {
 
     @Autowired
     OfferService offerService;
+
+    @Autowired
+    PurchaseService purchaseService;
 
 
 
@@ -228,63 +229,36 @@ public class OfferServiceController {
         return "test";
     }
 
-    public class CheckoutRequest {
-        private int paymentId;
-        private String userEmail;
-
-        public CheckoutRequest(int paymentId, String userEmail) {
-            this.paymentId = paymentId;
-            this.userEmail = userEmail;
-        }
-
-        // getters and setters
-        public int getPaymentId() { return paymentId; }
-        public void setPaymentId(int paymentId) { this.paymentId = paymentId; }
-        public String getUserEmail() { return userEmail; }
-        public void setUserEmail(String userEmail) { this.userEmail = userEmail; }
-    }
 
     @PostMapping("/purchaseAllCarts")
     public String purchaseOffer(@RequestHeader("X-User-Id") int userId,
                                 @ModelAttribute OfferPurchaseDTO purchaseDTO,
                                 Model model) {
-        System.out.println(orderService.testOrderingu());
-
-        User user = userRepository.findById(userId);
-        Store store = storeRepository.findByUser_Id(userId);
-
-         List<Cart> allCarts = cartRepository.findByStore(store);
-         System.out.println("to sie wywolalo");
-         Payment payment = orderService.placeOrder(store.getId(),allCarts);
-        String paymentServiceURL = "http://10.10.10.70:8085/payment/create-checkout-session";
-
-// 2. Use RestTemplate to send a POST (or GET) request
-        RestTemplate restTemplate = new RestTemplate();
-
-        try {
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-
-            CheckoutRequest checkoutRequest = new CheckoutRequest(payment.getPaymentId(),user.getEmail());
-
-            HttpEntity<CheckoutRequest> requestEntity = new HttpEntity<>(checkoutRequest, headers);
-
-            // Send POST request
-            String checkoutUrl = restTemplate.postForObject(paymentServiceURL, requestEntity, String.class);
-
-            // Redirect the user to Stripe checkout
-            return "redirect:" + checkoutUrl;
-
-        } catch (Exception e) {
-            System.err.println("Error calling payment service: " + e.getMessage());
+        try{
+            return purchaseService.handlePurchasingAllCarts(userId);
+        }
+        catch (Exception e){
+            return e.getMessage();
         }
 
 
-
-        System.out.println("All carts");
-        return "redirect:/offer/account";
     }
 
+    @ResponseBody
+    @PostMapping("/fulfillOrder")
+    public ResponseEntity<?> fulfillOrder(@RequestBody int paymentId){
+        paymentRepository.findById(paymentId).orElseThrow(() -> new RuntimeException("Payment not found"));
+        System.out.println("I want to fulfill order for payment: "+paymentId);
+
+
+        List<Integer> cartsInPayment = cartRepository.findCartIdsNative(paymentId);
+        System.out.println("carts in payment: "+cartsInPayment);
+
+        cartService.clearCarts(cartsInPayment);
+
+
+        return ResponseEntity.ok().build();
+    }
 
     @PostMapping("/addToCart")
     public String addToCart(@RequestHeader("X-User-Id") int userId,

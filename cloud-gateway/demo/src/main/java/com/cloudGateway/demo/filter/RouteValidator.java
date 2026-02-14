@@ -19,6 +19,7 @@ public class RouteValidator {
             "/jwt/createJWTToken",
             "/jwt/verifyJWTToken",
             "/email/sendEmail",
+            "/offer/fulfillOrder",
             "/eureka",
             "/",
             "/payment/stripeWebhook",
