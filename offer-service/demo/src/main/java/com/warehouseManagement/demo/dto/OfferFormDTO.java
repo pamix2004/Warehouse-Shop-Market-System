@@ -1,10 +1,12 @@
 package com.warehouseManagement.demo.dto;
 
+import java.math.BigDecimal;
+
 public class OfferFormDTO {
 
     // ===== OFFER =====
     private Integer productId; // null = nowy produkt
-    private float price;
+    private BigDecimal price;
     private int available_quantity;
     private int minimal_quantity;
 
@@ -23,7 +25,7 @@ public class OfferFormDTO {
         this.productId = productId;
     }
 
-    public float getPrice() {
+    public BigDecimal getPrice() {
         return price;
     }
 
@@ -47,7 +49,7 @@ public class OfferFormDTO {
         return categoryId;
     }
 
-    public void setPrice(float price) {
+    public void setPrice(BigDecimal price) {
         this.price = price;
     }
 

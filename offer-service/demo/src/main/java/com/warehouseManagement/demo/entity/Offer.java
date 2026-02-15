@@ -3,6 +3,8 @@ package com.warehouseManagement.demo.entity;
 import com.warehouseManagement.demo.OfferState;
 import jakarta.persistence.*;
 
+import java.math.BigDecimal;
+
 @Entity
 @Table(name = "offer")
 public class Offer {
@@ -12,7 +14,7 @@ public class Offer {
 
     private int available_quantity;
     private int minimal_quantity;
-    private float price;
+    private BigDecimal price;
 
     @ManyToOne
     @JoinColumn(name = "product_id")
@@ -41,7 +43,7 @@ public class Offer {
         return wholesaler;
     }
 
-    public float getPrice() {
+    public BigDecimal getPrice() {
         return price;
     }
 
@@ -61,7 +63,7 @@ public class Offer {
         this.minimal_quantity = minimal_quantity;
     }
 
-    public void setPrice(float price) {
+    public void setPrice(BigDecimal price) {
         this.price = price;
     }
 

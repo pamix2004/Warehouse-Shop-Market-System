@@ -54,7 +54,7 @@ function renderOrdersTable(ordersArray) {
         row.insertCell().textContent = o.paymentStatus ?? "";
 
         const price = o.totalPrice != null ? Number(o.totalPrice).toFixed(2) : "0.00";
-        row.insertCell().textContent = `${price} USD`;
+        row.insertCell().textContent = `${price} PLN`;
 
         // Details Button
         const detailsCell = row.insertCell();

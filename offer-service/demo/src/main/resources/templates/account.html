@@ -111,7 +111,7 @@
 
             <div class="price-qty-section">
                 <div class="field-group row-align">
-                    <label>Price:</label>
+                    <label>Price (PLN):</label>
                     <input type="number" step="0.01" th:field="*{price}" required />
                 </div>
                 <div class="field-group row-align">
@@ -137,7 +137,8 @@
         <details th:each="cart : ${cartDTOList}" class="basket">
             <summary class="basket-summary">
                 <span class="basket-name">Wholesaler <span th:text="${cart.wholesalerName}"></span></span>
-                <span class="basket-meta">(<span th:text="${#lists.size(cart.items)}">0</span> items, $<span th:text="${cart.cartTotal}"></span>)</span>
+                <span class="basket-meta">(<span th:text="${#lists.size(cart.items)}">0</span> items, <span th:text="${cart.cartTotal}"></span> PLN
+</span>
             </summary>
             <div class="basket-body">
                 <table class="table table-sm">
@@ -226,7 +227,14 @@
     </div>
 </div>
 
-
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    var errorMessage = [[${errorMessage}]];
+    if (errorMessage) {
+        alert(errorMessage);
+    }
+    /*]]>*/
+</script>
 
 
 

@@ -99,7 +99,7 @@ public class OfferServiceController {
 
             List<CartInformationDTO> cartList = new ArrayList<>();
             List<Cart> allCarts = cartRepository.findByStore(storeEntity);
-            float allCartsPrice = 0;
+            BigDecimal allCartsPrice = BigDecimal.ZERO;
 
             for (Cart cart : allCarts) {
 
@@ -108,7 +108,7 @@ public class OfferServiceController {
                 dto.setStoreId(cart.getStore().getId());
                 dto.setWholesalerName(cart.getWholesaler().getName());
 
-                double sum = 0;
+                BigDecimal sum = BigDecimal.ZERO;
 
                 List<CartItemDTO> items = new ArrayList<>();
 
@@ -123,19 +123,22 @@ public class OfferServiceController {
 
                     item.setQuantity(cartOffer.getQuantity());
                     item.setUnitPrice(cartOffer.getOffer().getPrice());
-                    item.setLineTotal(cartOffer.getOffer().getPrice()*cartOffer.getQuantity());
-                    item.setOfferId(cartOffer.getOffer().getId());
+                    item.setLineTotal(
+                            cartOffer.getOffer().getPrice().multiply(new BigDecimal(cartOffer.getQuantity()))
+                    );                    item.setOfferId(cartOffer.getOffer().getId());
                     items.add(item);
 
 
                     // If you want total PRICE instead:
-                     sum += cartOffer.getQuantity() * cartOffer.getOffer().getPrice();
-                }
+                    sum = sum.add(
+                            BigDecimal.valueOf(cartOffer.getQuantity())
+                                    .multiply(cartOffer.getOffer().getPrice())
+                    );                }
 
                 dto.setItems(items);
                 dto.setCartTotal(sum);
-                allCartsPrice = (float) (allCartsPrice + sum);
-
+                allCartsPrice = allCartsPrice.add(sum);
+                System.out.println("sum = "+sum);
 
                 if(!items.isEmpty())
                     cartList.add(dto);
@@ -262,9 +265,14 @@ public class OfferServiceController {
 
     @PostMapping("/addToCart")
     public String addToCart(@RequestHeader("X-User-Id") int userId,
-                            @ModelAttribute OfferPurchaseDTO purchaseDTO) {
-
-        cartService.addOfferToCart(userId, purchaseDTO);
+                            @ModelAttribute OfferPurchaseDTO purchaseDTO,
+                            RedirectAttributes redirectAttributes) {
+        try {
+            cartService.addOfferToCart(userId, purchaseDTO);
+        } catch (Exception e) {
+            // This catches your "Invalid quantity" or "Not enough stock" errors
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        }
 
         return "redirect:/offer/account";
     }
@@ -356,6 +364,7 @@ public class OfferServiceController {
         try {
             cartService.updateOfferQuantity(userId, cartId, offerId, quantity);
             List<CartInformationDTO> cartInformationDTOList = cartService.getCartDetailsForStore(userId);
+            System.out.println(cartInformationDTOList);
             return ResponseEntity.ok(cartInformationDTOList);
         } catch (Exception e) {
             // Change body(null) to body(e.getMessage())
@@ -471,7 +480,7 @@ public class OfferServiceController {
 
     @PostMapping("/changeOffer")
     @ResponseBody
-    public ResponseEntity<?> changeOffer(@RequestHeader("X-User-Id") int userId,@RequestParam int offerId,@RequestParam float price,@RequestParam int availableQuantity,@RequestParam int minimalQuantity) {
+    public ResponseEntity<?> changeOffer(@RequestHeader("X-User-Id") int userId,@RequestParam int offerId,@RequestParam BigDecimal price,@RequestParam int availableQuantity,@RequestParam int minimalQuantity) {
         try{
             offerService.changeOffer(userId, offerId, price, availableQuantity, minimalQuantity);
             return ResponseEntity.ok(Map.of());
@@ -568,8 +577,7 @@ public class OfferServiceController {
             return "redirect:/offer/orders/" + order.getOrderId();
         }
 
-        BigDecimal itemPrice = BigDecimal
-                .valueOf(orderOffer.getOffer().getPrice())
+        BigDecimal itemPrice = orderOffer.getOffer().getPrice()
                 .multiply(BigDecimal.valueOf(orderOffer.getQuantity()));
 
         order.setPrice(order.getPrice().subtract(itemPrice));

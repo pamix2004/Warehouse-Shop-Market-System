@@ -2,6 +2,7 @@ package com.warehouseManagement.demo.dto;
 
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.util.List;
 @Data
 public class CartInformationDTO {
@@ -9,7 +10,7 @@ public class CartInformationDTO {
     private int storeId;
     private String wholesalerName;
     private List<CartItemDTO> items;
-    private double cartTotal;
+    private BigDecimal cartTotal;
 
     // getters/setters
 }

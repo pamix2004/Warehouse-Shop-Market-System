@@ -84,7 +84,7 @@ public class OrderService {
             newOrder.setPrice(BigDecimal.valueOf(0));
             newOrder = orderRepository.save(newOrder);
 
-            double runningTotal = 0.0;
+            BigDecimal runningTotal = BigDecimal.ZERO;
             for (CartOffer cartOffer : itemsInCart) {
                 Offer currentOffer = offerRepository.findById(cartOffer.getOffer().getId());
 
@@ -105,11 +105,12 @@ public class OrderService {
 
                 orderOfferRepository.save(orderOffer);
 
-                runningTotal += (cartOffer.getOffer().getPrice() * cartOffer.getQuantity());
-            }
+                runningTotal = runningTotal.add(
+                        cartOffer.getOffer().getPrice().multiply(BigDecimal.valueOf(cartOffer.getQuantity()))
+                );            }
 
             // 4. Update final price
-            newOrder.setPrice(BigDecimal.valueOf(runningTotal));
+            newOrder.setPrice(runningTotal);
             orderRepository.save(newOrder);
 
             // 5. Link Payment

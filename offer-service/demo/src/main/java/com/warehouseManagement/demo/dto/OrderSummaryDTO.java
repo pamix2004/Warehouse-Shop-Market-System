@@ -15,5 +15,4 @@ public class OrderSummaryDTO {
     public String Status;
     public BigDecimal totalPrice;
     public PaymentStatus paymentStatus;
-    public String stripeCheckoutLink;
 }

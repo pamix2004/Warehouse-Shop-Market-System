@@ -92,7 +92,7 @@ function renderOrdersTable(ordersArray) {
 
         // 6. Price
         const price = o.totalPrice != null ? Number(o.totalPrice).toFixed(2) : "0.00";
-        row.insertCell().textContent = `${price} USD`;
+        row.insertCell().textContent = `${price} PLN`;
 
         // 7. Details Button
         const detailsCell = row.insertCell();

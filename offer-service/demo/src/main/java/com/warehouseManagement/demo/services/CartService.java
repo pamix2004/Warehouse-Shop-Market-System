@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,7 +37,7 @@ public class CartService {
             dto.setStoreId(cart.getStore().getId());
             dto.setWholesalerName(cart.getWholesaler().getName());
 
-            double cartSum = 0;
+            BigDecimal cartSum = BigDecimal.ZERO;
             List<CartItemDTO> items = new ArrayList<>();
 
             // Fetch items for this specific cart
@@ -49,11 +50,14 @@ public class CartService {
                 item.setQuantity(cartOffer.getQuantity());
                 item.setUnitPrice(cartOffer.getOffer().getPrice());
 
-                double lineTotal = cartOffer.getOffer().getPrice() * cartOffer.getQuantity();
+                BigDecimal lineTotal = cartOffer.getOffer().getPrice()
+                        .multiply(new BigDecimal(cartOffer.getQuantity()));
+                System.out.println("lineTotal: " + lineTotal);
                 item.setLineTotal(lineTotal);
 
                 items.add(item);
-                cartSum += lineTotal;
+                cartSum = cartSum.add(lineTotal);
+                System.out.println("cartSum: " + cartSum);
             }
 
             dto.setItems(items);
