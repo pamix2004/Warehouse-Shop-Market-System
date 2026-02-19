@@ -26,7 +26,8 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
 
     public AuthenticationFilter(WebClient.Builder webClientBuilder) {
         super(Config.class);
-        this.webClient = webClientBuilder.baseUrl("http://localhost:8085").build();
+        //JAK NIE DZIAŁA to przez to
+        this.webClient = webClientBuilder.baseUrl("http://auth-service:8080").build();
     }
 
 
@@ -51,7 +52,7 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
 
             HttpCookie authCookie = exchange.getRequest().getCookies().getFirst("auth_token");
             if (authCookie == null) {
-                return redirectToLogin(exchange, "You need to log in");
+                return redirectToLogin(exchange, "You need to log in, no auth_token");
             }
 
             String token = authCookie.getValue();
@@ -65,7 +66,7 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
                     .bodyToMono(TokenValidationResponse.class)
                     .flatMap(body -> {
                         if (body == null || !body.isValid()) {
-                            return redirectToLogin(exchange, "You need to log in");
+                            return redirectToLogin(exchange, "You need to log in,expired token");
                         }
 
                         String userId = String.valueOf(body.getUserId());
@@ -80,7 +81,11 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
 
                         return chain.filter(exchange.mutate().request(mutatedRequest).build());
                     })
-                    .onErrorResume(err -> redirectToLogin(exchange, "You need to log in"));
+                    .onErrorResume(err -> {
+                        // This will print the REAL error in your Docker logs
+                        err.printStackTrace();
+                        return redirectToLogin(exchange, "Error: " + err.getMessage());
+                    });
         };
     }
 

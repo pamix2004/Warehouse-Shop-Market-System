@@ -9,9 +9,9 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.cloudGateway</groupId>
-	<artifactId>demo</artifactId>
+	<artifactId>cloud-gateway</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>demo</name>
+	<name>cloud-gateway</name>
 	<description>cloud gateway for project</description>
 	<url/>
 	<licenses>

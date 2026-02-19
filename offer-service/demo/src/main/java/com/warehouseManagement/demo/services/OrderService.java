@@ -50,6 +50,8 @@ public class OrderService {
     WholesalerRepository wholesalerRepository;
     @Autowired
     PaymentOrderRepository paymentOrderRepository;
+    @Autowired
+    RestTemplate restTemplate;
 
 
 
@@ -256,10 +258,9 @@ public class OrderService {
     }
 
     public void callPaymentServiceToExpireCheckout(String checkoutSessionId){
-        String paymentServiceURL = "http://10.10.10.70:8085/payment/expire-checkout";
+        String paymentServiceURL = "http://payment-service/payment/expire-checkout";
 
-        // 2. Use RestTemplate to send a POST (or GET) request
-        RestTemplate restTemplate = new RestTemplate();
+
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);

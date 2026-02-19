@@ -9,10 +9,10 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.politechnika</groupId>
-	<artifactId>warehouseManagement</artifactId>
+	<artifactId>auth-service</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>warehouseManagement</name>
-	<description>Warehouse management</description>
+	<name>auth-service</name>
+	<description>auth-service</description>
 	<url/>
 	<licenses>
 		<license/>

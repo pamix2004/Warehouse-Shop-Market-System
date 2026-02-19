@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.HashMap;
@@ -47,10 +48,8 @@ public class PurchaseService {
     }
 
     public ResponseEntity<HashMap> callPaymentServiceToCreateStripeCheckout(Payment payment, User user,long price) {
-        String paymentServiceURL = "http://10.10.10.70:8085/payment/create-checkout-session";
+        String paymentServiceURL = "http://payment-service/payment/create-checkout-session";
 
-        // 2. Use RestTemplate to send a POST (or GET) request
-        RestTemplate restTemplate = new RestTemplate();
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -80,6 +79,9 @@ public class PurchaseService {
 
     @Autowired
     PaymentOrderRepository paymentOrderRepository;
+
+    @Autowired
+    RestTemplate restTemplate;
 
 
     /**

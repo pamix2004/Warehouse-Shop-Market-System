@@ -79,6 +79,9 @@ public class OfferServiceController {
     @Autowired
     PurchaseService purchaseService;
 
+    @Autowired
+    private RestTemplate restTemplate;
+
 
 
     @GetMapping("/account")
@@ -277,22 +280,22 @@ public class OfferServiceController {
         return "redirect:/offer/account";
     }
 
-    public String callPaymentServiceToGetStripeCheckoutLink(String checkoutSessionId){
-
-        String paymentServiceURL = "http://10.10.10.70:8085/payment/getLinkForCheckout";
-
-        RestTemplate restTemplate = new RestTemplate();
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-
-        HttpEntity<String> request = new HttpEntity<>("\"" + checkoutSessionId + "\"", headers);
-
-        ResponseEntity<String> response =
-                restTemplate.postForEntity(paymentServiceURL, request, String.class);
-
-        return response.getBody();
-    }
+//    public String callPaymentServiceToGetStripeCheckoutLink(String checkoutSessionId){
+//
+//        String paymentServiceURL = "http://payment-service/payment/getLinkForCheckout";
+//
+//
+//
+//        HttpHeaders headers = new HttpHeaders();
+//        headers.setContentType(MediaType.APPLICATION_JSON);
+//
+//        HttpEntity<String> request = new HttpEntity<>("\"" + checkoutSessionId + "\"", headers);
+//
+//        ResponseEntity<String> response =
+//                restTemplate.postForEntity(paymentServiceURL, request, String.class);
+//
+//        return response.getBody();
+//    }
 
 
 

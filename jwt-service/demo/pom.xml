@@ -9,7 +9,7 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.warehouseManagement</groupId>
-	<artifactId>demo</artifactId>
+	<artifactId>jwt-service</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>jwt-service</name>
 	<description>jwt-service for authentication</description>

@@ -10,6 +10,7 @@
         <module name="demo (1) (com.cloudGateway)" />
         <module name="demo (3) (com.eurekaServer)" />
         <module name="warehouseManagement" />
+        <module name="demo (2) (com.eurekaServer)" />
         <module name="demo (1) (com.eurekaServer)" />
       </profile>
       <profile name="Annotation profile for offer-service" enabled="true">
@@ -23,7 +24,27 @@
         <module name="demo" />
         <module name="demo (1) (com.warehouseManegement)" />
       </profile>
-      <profile name="Annotation profile for jwt-service" enabled="true">
+      <profile name="Annotation profile for demo (5)" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.42/lombok-1.18.42.jar" />
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.42/lombok-1.18.42.jar" />
+        </processorPath>
+        <module name="demo (5)" />
+      </profile>
+      <profile name="Annotation profile for demo (4)" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.42/lombok-1.18.42.jar" />
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.42/lombok-1.18.42.jar" />
+        </processorPath>
+        <module name="demo (4)" />
+      </profile>
+      <profile name="Annotation profile for payment" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
@@ -31,16 +52,7 @@
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.42/lombok-1.18.42.jar" />
         </processorPath>
         <module name="demo (2) (com.warehouseManegement)" />
-        <module name="demo (4)" />
-      </profile>
-      <profile name="Annotation profile for demo (5)" enabled="true">
-        <sourceOutputDir name="target/generated-sources/annotations" />
-        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
-        <outputRelativeToContentRoot value="true" />
-        <processorPath useClasspath="false">
-          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.42/lombok-1.18.42.jar" />
-        </processorPath>
-        <module name="demo (5)" />
+        <module name="payment" />
       </profile>
     </annotationProcessing>
   </component>
@@ -51,10 +63,12 @@
       <module name="demo (1) (com.cloudGateway)" options="-parameters" />
       <module name="demo (1) (com.eurekaServer)" options="-parameters" />
       <module name="demo (1) (com.warehouseManegement)" options="-parameters" />
+      <module name="demo (2) (com.eurekaServer)" options="-parameters" />
       <module name="demo (2) (com.warehouseManegement)" options="-parameters" />
       <module name="demo (3) (com.eurekaServer)" options="-parameters" />
       <module name="demo (4)" options="-parameters" />
       <module name="demo (5)" options="-parameters" />
+      <module name="payment" options="-parameters" />
       <module name="warehouseManagement" options="-parameters" />
     </option>
   </component>

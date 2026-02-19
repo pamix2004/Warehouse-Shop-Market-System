@@ -9,7 +9,7 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.warehouseManagement</groupId>
-	<artifactId>demo</artifactId>
+	<artifactId>offer-service</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>offer-service</name>
 	<description>It is microservice used for things related to offers</description>

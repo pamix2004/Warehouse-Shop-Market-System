@@ -58,10 +58,13 @@ public class AuthServiceController {
     private DiscoveryClient discoveryClient;
 
     public String getJWTServiceUrl() {
-        // Get all instances of "jwt-service"
+
+
+
         List<ServiceInstance> instances = discoveryClient.getInstances("jwt-service");
         if (instances != null && !instances.isEmpty()) {
             // Return the URI of the first instance
+            System.out.println("URI: " + instances.get(0).getUri().toString());
             return instances.get(0).getUri().toString(); // e.g., http://192.168.1.10:8080
         }
         return null;

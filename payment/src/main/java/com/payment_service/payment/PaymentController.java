@@ -51,6 +51,10 @@ public class PaymentController {
     @Value("${app.stripeEndpointSecret}")
     private String endPointSecret;
 
+    @Value("${app.base-url}")
+    private String baseUrl;
+
+
     @Transactional
     public void fulfillPurchase(String sessionId){
         try{
@@ -80,7 +84,7 @@ public class PaymentController {
                         paymentRepository.save(payment);
 
                         // 2. Call the external endpoint
-                        String url = "http://10.10.10.70:8085/offer/fulfillOrder";
+                        String url = "http://offer-service/offer/fulfillOrder";
 
                         int paymentId = payment.getPaymentId();
 
@@ -215,7 +219,8 @@ public class PaymentController {
 
     public void sendMail(String email, String subject, String body)
     {
-        String url = "http://10.10.10.70:8085/email/sendEmail";
+        String url = "http://email-service/email/sendEmail";
+
 
         // Build a Map or a DTO to represent the JSON body
         Map<String, String> payload = new HashMap<>();
@@ -263,7 +268,7 @@ public class PaymentController {
         System.out.println("User wants to complete payment_id" + paymentId);
 
         try {
-            String baseUrl = gatewayUrlResolver.gatewayBaseUrl();
+            System.out.println("baseUrl: " + baseUrl);
             SessionCreateParams params = SessionCreateParams.builder()
                     .setMode(SessionCreateParams.Mode.PAYMENT)
                     .setSuccessUrl(baseUrl + "/payment/success")
@@ -284,6 +289,7 @@ public class PaymentController {
                     .build();
 
             Session session = Session.create(params);
+            System.out.println("checkout link"+session.getUrl());
 
             Payment payment = paymentRepository.findById(paymentId).orElseThrow(() -> new RuntimeException("Payment not found(create-checkout-session)"));
             payment.setStripeSessionId(session.getId());
@@ -298,6 +304,7 @@ public class PaymentController {
             return ResponseEntity.ok(body);
 
         } catch (Exception e) {
+            System.out.println("BLAD TUTAJ");
             System.out.println("Exception: " + e.getMessage());
             return ResponseEntity.internalServerError().build();
         }
