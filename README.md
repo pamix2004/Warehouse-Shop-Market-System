@@ -4,6 +4,17 @@
 
 Wholesalers sell products and manage quantities, minimum order limits, and pricing. Stores buy products using **Stripe** for payments.  
 
+🌐 **Live Demo:** [https://pamix.online](https://pamix.online)
+
+## 🔑 Testing Accounts
+
+To quickly explore the system, use the following pre-created accounts:
+
+| Role       | Email                      | Password |
+|------------|----------------------------|----------|
+| Store      | testStore@gmail.com        | test     |
+| Wholesaler | testWholesaler@gmail.com   | test     |
+
 ---
 
 ## 🚀 Features
@@ -26,7 +37,8 @@ Wholesalers sell products and manage quantities, minimum order limits, and prici
 - **Backend:** Spring Boot (Microservices architecture)  
 - **Database:** MySQL  
 - **Deployment:** Docker & Docker Compose  
-- **Hosting:** AWS Virtual Machine  
+- **Hosting:** AWS Virtual Machine
+- **Frontend** HTML, CSS, and JS (Bootstrap & jQuery for a responsive dashboard).
 
 ---
 
@@ -74,10 +86,10 @@ Wholesalers sell products and manage quantities, minimum order limits, and prici
 
 
 ## 🌐 Demo
-You can try the system online without running Docker:  
-[**Access Website**](http://16.171.30.218/)  
+You can try the system online:  
+[**Access Website**](https://pamix.online)
 
 ---
 
 📄 Technical Documentation <br>
-[Available here](https://docs.google.com/document/d/1OZ1kh8x7kANeVk4QKrjBc_Vg_4kKRDNiFvxY4Z-I6yU/edit?usp=sharing)
+[Available here](https://docs.google.com/document/d/1IbAS80FeOh0Kk25SDEai8EagdU0JsteqPpjTxngk314/edit?usp=sharing)
