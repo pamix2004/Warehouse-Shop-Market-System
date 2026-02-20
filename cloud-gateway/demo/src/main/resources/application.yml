@@ -42,12 +42,14 @@ spring:
           filters:
             - AuthenticationFilter
             - PreserveHostHeader
-eureka:
-  client:
-    service-url:
-      defaultZone: http://eureka-server:8761/eureka/
-    fetch-registry: true
-    register-with-eureka: true
-  instance:
-    # This helps Eureka identify the container by its name/IP in the Docker network
-    prefer-ip-address: true
+  profiles:
+    docker:
+      eureka:
+        client:
+          service-url:
+            defaultZone: http://eureka-server:8761/eureka/
+    local:
+      eureka:
+        client:
+          service-url:
+            defaultZone: http://localhost:8761/eureka/

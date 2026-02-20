@@ -26,4 +26,15 @@ public interface CartRepository extends JpaRepository<Cart, Integer> {
             nativeQuery = true)
     List<Integer> findCartIdsNative(@Param("paymentId") int paymentId);
 
+
+
+    @Query(value = "SELECT EXISTS (" +
+            "  SELECT 1 FROM users u " +
+            "  JOIN store s ON s.user_id = u.id " +
+            "  JOIN cart c ON c.store_id = s.id " +
+            "  JOIN cart_offer co ON co.cart_id = c.cart_id " +
+            "  WHERE u.id = :userId" +
+            ")", nativeQuery = true)
+    long hasActiveBasket(@Param("userId") Integer userId);
+
 }

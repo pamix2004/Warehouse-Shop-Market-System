@@ -5,7 +5,14 @@
   width: 100%;
 
 
+
 }
+
+.alertSection{
+    max-width:1200px;
+    margin: 100px auto 0 auto;
+}
+
 .offers-table{
     border:width:1px;
     border-style:solid;
@@ -16,10 +23,6 @@
 
 }
 
-.storeWholeSalerContainer{
-
-    margin-top:100px;
-}
 
 /* padding + borders for ALL cells (th and td) */
 .offers-table th,

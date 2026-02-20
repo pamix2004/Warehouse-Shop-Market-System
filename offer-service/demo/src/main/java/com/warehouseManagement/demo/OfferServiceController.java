@@ -85,10 +85,19 @@ public class OfferServiceController {
 
 
     @GetMapping("/account")
-    public String account(@RequestHeader("X-User-Id") int userId, Model model){
+    public String account(@RequestHeader("X-User-Id") int userId,  @RequestParam(name = "successPayment", required = false) Boolean successPayment,@RequestParam(name = "errorMessageParam", required = false) String errorMessageParam,Model model){
         User userEntity = userRepository.findById(userId);
         model.addAttribute("email",userEntity.getEmail());
         model.addAttribute("id",userEntity.getId());
+
+        if (successPayment != null) {
+            model.addAttribute("successPayment", successPayment);
+        }
+
+        if (errorMessageParam != null) {
+            model.addAttribute("errorMessageParam", errorMessageParam);
+        }
+
 
         String role = userEntity.getRole();
         model.addAttribute("role",role);

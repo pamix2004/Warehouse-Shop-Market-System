@@ -16,216 +16,245 @@
 
 <div th:replace="base::navbar"></div>
 
-<div th:if="${role == 'wholesaler'}" class="storeWholeSalerContainer">
-    <div class="offers-wrap">
 
-        <h2>My offers</h2>
-        <a class="top-link" href="/offer/wholesaler/orders">Orders for my offers</a>
+<main class="main-content">
 
-        <table class="offers-table" id="wholesalerTable">
-            <thead>
-            <tr>
-                <th>Product</th>
-                <th>Price</th>
-                <th>Available quantity</th>
-                <th>Minimal quantity</th>
-                <th>Action</th>
-                <th>State</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:each="offer : ${offers}" th:attr="data-offer-id=${offer.id}">
-                <td th:text="${offer.product.name}"></td>
-                <td th:text="${offer.price}"></td>
-                <td th:text="${offer.available_quantity}"></td>
-                <td th:text="${offer.minimal_quantity}"></td>
-
-                <td>
-                    <button type="button" class="btn btn-primary btn-sm offer-edit-btn">Edit</button>
-                </td>
-                <td>
-                    <select class="form-select form-select-sm offer-state-select">
-                        <option th:each="state : ${possibleOfferStates}"
-                                th:value="${state}"
-                                th:text="${state}"
-                                th:selected="${state == offer.state}"> </option>
-                    </select>
-                </td>
-            </tr>
-
-            </tbody>
-        </table>
-
-        <div class="pager" style="display:flex; gap:8px; align-items:center; margin:10px 0;">
-            <button type="button" id="wPrevBtn">Prev</button>
-            <span id="wPageInfo"></span>
-            <button type="button" id="wNextBtn">Next</button>
-            <span style="margin-left:16px;">Rows per page:</span>
-            <select id="wPageSize">
-                <option>10</option>
-                <option selected>25</option>
-                <option>50</option>
-                <option>100</option>
-            </select>
+    <!-- Alert Section -->
+    <div class="alertSection">
+        <div th:if="${successPayment != null}"
+             class="alert"
+             th:classappend="${successPayment} ? ' alert-success' : ' alert-danger'"
+             role="alert">
+            <span th:text="${successPayment} ? 'Payment was successful.' : 'Payment failed.'"></span>
         </div>
+
+        <!-- General error message alert -->
+        <div th:if="${errorMessageParam != null}"
+             class="alert alert-danger"
+             role="alert">
+            <span th:text="${errorMessageParam}"></span>
+        </div>
+
     </div>
 
-    <div class="offers-wrap add-offer-section">
-        <h2>Add offer</h2>
-        <div id="ajax-error-container" class="alert alert-danger" role="alert" style="display: none;">
-            <span id="ajax-error-text"></span>
-        </div>
+    <div th:if="${role == 'wholesaler'}" class="storeWholeSalerContainer">
+        <div class="offers-wrap">
 
-        <form id="addOfferForm" th:action="@{/offer/account/add}" th:object="${offerForm}" method="post" class="form-container">
-            <div class="form-section">
-                <h3>Select product</h3>
-                <select id="productSelect" th:field="*{productId}" class="styled-select">
-                    <option value="">-- new product --</option>
-                    <option th:each="p : ${products}" th:value="${p.id}" th:text="${p.name}"></option>
+            <h2>My offers</h2>
+            <a class="top-link" href="/offer/wholesaler/orders">Orders for my offers</a>
+
+            <table class="offers-table" id="wholesalerTable">
+                <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Price</th>
+                    <th>Available quantity</th>
+                    <th>Minimal quantity</th>
+                    <th>Action</th>
+                    <th>State</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="offer : ${offers}" th:attr="data-offer-id=${offer.id}">
+                    <td th:text="${offer.product.name}"></td>
+                    <td th:text="${offer.price}"></td>
+                    <td th:text="${offer.available_quantity}"></td>
+                    <td th:text="${offer.minimal_quantity}"></td>
+
+                    <td>
+                        <button type="button" class="btn btn-primary btn-sm offer-edit-btn">Edit</button>
+                    </td>
+                    <td>
+                        <select class="form-select form-select-sm offer-state-select">
+                            <option th:each="state : ${possibleOfferStates}"
+                                    th:value="${state}"
+                                    th:text="${state}"
+                                    th:selected="${state == offer.state}"> </option>
+                        </select>
+                    </td>
+                </tr>
+
+                </tbody>
+            </table>
+
+            <div class="pager" style="display:flex; gap:8px; align-items:center; margin:10px 0;">
+                <button type="button" id="wPrevBtn">Prev</button>
+                <span id="wPageInfo"></span>
+                <button type="button" id="wNextBtn">Next</button>
+                <span style="margin-left:16px;">Rows per page:</span>
+                <select id="wPageSize">
+                    <option>10</option>
+                    <option selected>25</option>
+                    <option>50</option>
+                    <option>100</option>
                 </select>
             </div>
-
-            <div id="newProductSection" class="form-section">
-                <h3>New product</h3>
-                <div class="inline-fields">
-                    <div class="field-group">
-                        <label>Name of the product:</label>
-                        <input type="text" th:field="*{productName}" />
-                    </div>
-                    <div class="field-group">
-                        <label>Producer:</label>
-                        <select th:field="*{producerId}">
-                            <option value="">-- select producer --</option>
-                            <option th:each="prod : ${producers}" th:value="${prod.id}" th:text="${prod.producer_name}"></option>
-                        </select>
-                    </div>
-                    <div class="field-group">
-                        <label>Category:</label>
-                        <select th:field="*{categoryId}">
-                            <option value="">-- select category --</option>
-                            <option th:each="cat : ${categories}" th:value="${cat.id}" th:text="${cat.name}"></option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-
-            <div class="price-qty-section">
-                <div class="field-group row-align">
-                    <label>Price (PLN):</label>
-                    <input type="number" step="0.01" th:field="*{price}" required />
-                </div>
-                <div class="field-group row-align">
-                    <label>Available quantity:</label>
-                    <input type="number" th:field="*{available_quantity}" required />
-                </div>
-                <div class="field-group row-align">
-                    <label>Minimal quantity:</label>
-                    <input type="number" th:field="*{minimal_quantity}" required />
-                </div>
-            </div>
-            <button class="add-offer-btn" type="submit">Add offer</button>
-        </form>
-    </div>
-</div>
-
-<div th:if="${role == 'store'}" class="storeWholeSalerContainer">
-    <div class="baskets">
-        <div class="baskets-title">
-            Baskets (<span th:text="${cartDTOList.size()}">0</span> active)
         </div>
 
-        <details th:each="cart : ${cartDTOList}" class="basket">
-            <summary class="basket-summary">
-                <span class="basket-name">Wholesaler <span th:text="${cart.wholesalerName}"></span></span>
-                <span class="basket-meta">(<span th:text="${#lists.size(cart.items)}">0</span> items, <span th:text="${cart.cartTotal}"></span> PLN
-</span>
-            </summary>
-            <div class="basket-body">
-                <table class="table table-sm">
-                    <thead>
-                    <tr><th>Product</th><th>Qty</th><th>Unit Price</th><th>Total Price</th><th></th></tr>
-                    </thead>
-                    <tbody>
-                    <tr th:each="it : ${cart.items}" th:id="'item-row-' + ${it.offerId}">
-                        <td th:text="${it.name}"></td>
-                        <td>
-                            <input type="number"
-                                   class="form-control cart-qty-input"
-                                   th:value="${it.quantity}"
-                                   th:data-offer-id="${it.offerId}"
-                                   th:data-cart-id="${cart.cartId}">
-                        </td>
-                        <td th:text="${it.unitPrice}"></td>
-                        <td class="line-total-cell" th:text="${it.lineTotal}"></td>
-                        <td>
-                            <button type="button"
-                                    class="btn btn-outline-danger btn-sm remove-item-btn"
-                                    th:data-cart-id="${cart.cartId}"
-                                    th:data-offer-id="${it.offerId}"
-                                    title="Remove item">
-                                &times;
-                            </button>
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
+        <div class="offers-wrap add-offer-section">
+            <h2>Add offer</h2>
+            <div id="ajax-error-container" class="alert alert-danger" role="alert" style="display: none;">
+                <span id="ajax-error-text"></span>
             </div>
-        </details>
 
-        <div class="baskets-summary">
-            <div>Total: <b th:text="${allCartsPrice} + ' ZŁ'"></b></div>
-            <form action="/offer/purchaseAllCarts" method="post">
-                <button class="placeOrderButton" type="submit">Place Order</button>
+            <form id="addOfferForm" th:action="@{/offer/account/add}" th:object="${offerForm}" method="post" class="form-container">
+                <div class="form-section">
+                    <h3>Select product</h3>
+                    <select id="productSelect" th:field="*{productId}" class="styled-select">
+                        <option value="">-- new product --</option>
+                        <option th:each="p : ${products}" th:value="${p.id}" th:text="${p.name}"></option>
+                    </select>
+                </div>
+
+                <div id="newProductSection" class="form-section">
+                    <h3>New product</h3>
+                    <div class="inline-fields">
+                        <div class="field-group">
+                            <label>Name of the product:</label>
+                            <input type="text" th:field="*{productName}" />
+                        </div>
+                        <div class="field-group">
+                            <label>Producer:</label>
+                            <select th:field="*{producerId}">
+                                <option value="">-- select producer --</option>
+                                <option th:each="prod : ${producers}" th:value="${prod.id}" th:text="${prod.producer_name}"></option>
+                            </select>
+                        </div>
+                        <div class="field-group">
+                            <label>Category:</label>
+                            <select th:field="*{categoryId}">
+                                <option value="">-- select category --</option>
+                                <option th:each="cat : ${categories}" th:value="${cat.id}" th:text="${cat.name}"></option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="price-qty-section">
+                    <div class="field-group row-align">
+                        <label>Price (PLN):</label>
+                        <input type="number" step="0.01" th:field="*{price}" required />
+                    </div>
+                    <div class="field-group row-align">
+                        <label>Available quantity:</label>
+                        <input type="number" th:field="*{available_quantity}" required />
+                    </div>
+                    <div class="field-group row-align">
+                        <label>Minimal quantity:</label>
+                        <input type="number" th:field="*{minimal_quantity}" required />
+                    </div>
+                </div>
+                <button class="add-offer-btn" type="submit">Add offer</button>
             </form>
         </div>
     </div>
 
-    <div class="offers-wrap">
-        <h2>Available offers</h2>
-        <a class="top-link" href="/offer/orders">My orders</a>
-        <table class="offers-table" id="storeTable">
-            <thead>
-            <tr>
-                <th>Product</th>
-                <th>Wholesaler</th>
-                <th>Price</th>
-                <th>Available quantity</th>
-                <th>Minimal quantity</th>
-                <th>Add</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:each="offer : ${offers}">
-                <td th:text="${offer.product.name}"></td>
-                <td th:text="${offer.wholesaler.name}"></td>
-                <td th:text="${offer.price}"></td>
-                <td th:text="${offer.available_quantity}"></td>
-                <td th:text="${offer.minimal_quantity}"></td>
-                <td class="buy-cell">
-                    <form th:action="@{/offer/addToCart}" method="post">
-                        <input type="hidden" name="offerId" th:value="${offer.id}" />
-                        <input class="qty-input" type="number" name="quantity" min="1" required />
-                        <button class="buy-btn" type="submit">Add</button>
-                    </form>
-                </td>
-            </tr>
-            </tbody>
-        </table>
+    <div th:if="${role == 'store'}" class="storeWholeSalerContainer">
 
-        <div class="pager" style="display:flex; gap:8px; align-items:center; margin:10px 0;">
-            <button type="button" id="prevBtn">Prev</button>
-            <span id="pageInfo"></span>
-            <button type="button" id="nextBtn">Next</button>
-            <span style="margin-left:16px;">Rows per page:</span>
-            <select id="pageSize">
-                <option>10</option>
-                <option selected>25</option>
-                <option>50</option>
-                <option>100</option>
-            </select>
+
+
+
+
+        <div class="baskets">
+            <div class="baskets-title">
+                Baskets (<span th:text="${cartDTOList.size()}">0</span> active)
+            </div>
+
+            <details th:each="cart : ${cartDTOList}" class="basket">
+                <summary class="basket-summary">
+                    <span class="basket-name">Wholesaler <span th:text="${cart.wholesalerName}"></span></span>
+                    <span class="basket-meta">(<span th:text="${#lists.size(cart.items)}">0</span> items, <span th:text="${cart.cartTotal}"></span> PLN
+</span>
+                </summary>
+                <div class="basket-body">
+                    <table class="table table-sm">
+                        <thead>
+                        <tr><th>Product</th><th>Qty</th><th>Unit Price</th><th>Total Price</th><th></th></tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="it : ${cart.items}" th:id="'item-row-' + ${it.offerId}">
+                            <td th:text="${it.name}"></td>
+                            <td>
+                                <input type="number"
+                                       class="form-control cart-qty-input"
+                                       th:value="${it.quantity}"
+                                       th:data-offer-id="${it.offerId}"
+                                       th:data-cart-id="${cart.cartId}">
+                            </td>
+                            <td th:text="${it.unitPrice}"></td>
+                            <td class="line-total-cell" th:text="${it.lineTotal}"></td>
+                            <td>
+                                <button type="button"
+                                        class="btn btn-outline-danger btn-sm remove-item-btn"
+                                        th:data-cart-id="${cart.cartId}"
+                                        th:data-offer-id="${it.offerId}"
+                                        title="Remove item">
+                                    &times;
+                                </button>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </details>
+
+            <div class="baskets-summary">
+                <div>Total: <b th:text="${allCartsPrice} + ' ZŁ'"></b></div>
+                <form action="/offer/purchaseAllCarts" method="post">
+                    <button class="placeOrderButton" type="submit">Place Order</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="offers-wrap">
+            <h2>Available offers</h2>
+            <a class="top-link" href="/offer/orders">My orders</a>
+            <table class="offers-table" id="storeTable">
+                <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Wholesaler</th>
+                    <th>Price</th>
+                    <th>Available quantity</th>
+                    <th>Minimal quantity</th>
+                    <th>Add</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="offer : ${offers}">
+                    <td th:text="${offer.product.name}"></td>
+                    <td th:text="${offer.wholesaler.name}"></td>
+                    <td th:text="${offer.price}"></td>
+                    <td th:text="${offer.available_quantity}"></td>
+                    <td th:text="${offer.minimal_quantity}"></td>
+                    <td class="buy-cell">
+                        <form th:action="@{/offer/addToCart}" method="post">
+                            <input type="hidden" name="offerId" th:value="${offer.id}" />
+                            <input class="qty-input" type="number" name="quantity" min="1" required />
+                            <button class="buy-btn" type="submit">Add</button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+
+            <div class="pager" style="display:flex; gap:8px; align-items:center; margin:10px 0;">
+                <button type="button" id="prevBtn">Prev</button>
+                <span id="pageInfo"></span>
+                <button type="button" id="nextBtn">Next</button>
+                <span style="margin-left:16px;">Rows per page:</span>
+                <select id="pageSize">
+                    <option>10</option>
+                    <option selected>25</option>
+                    <option>50</option>
+                    <option>100</option>
+                </select>
+            </div>
         </div>
     </div>
-</div>
+</main>
+
+
 
 <script th:inline="javascript">
     /*<![CDATA[*/
@@ -233,6 +262,19 @@
     if (errorMessage) {
         alert(errorMessage);
     }
+    /*]]>*/
+</script>
+
+<!--If there is successPayment in the URL query remove it-->
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    window.addEventListener('DOMContentLoaded', (event) => {
+        if (window.location.search.includes('successPayment')) {
+            const url = window.location.origin + window.location.pathname;
+            window.history.replaceState({}, document.title, url);
+            console.log("URL cleaned: " + url); // debug
+        }
+    });
     /*]]>*/
 </script>
 

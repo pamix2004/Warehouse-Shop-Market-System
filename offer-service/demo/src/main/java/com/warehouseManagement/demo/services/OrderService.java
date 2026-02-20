@@ -1,5 +1,6 @@
 package com.warehouseManagement.demo.services;
 
+import com.warehouseManagement.demo.Exceptions.CartsAreEmpty;
 import com.warehouseManagement.demo.Exceptions.InvalidOrderStatusChange;
 import com.warehouseManagement.demo.PaymentStatus;
 import com.warehouseManagement.demo.entity.*;
@@ -57,6 +58,8 @@ public class OrderService {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Payment placeOrder(int storeId, List<Cart> carts) {
+        System.out.println("Trying to place order");
+
         Store store = storeRepository.findById(storeId)
                 .orElseThrow(() -> new RuntimeException("Store not found with ID: " + storeId));
 
@@ -110,6 +113,8 @@ public class OrderService {
                 runningTotal = runningTotal.add(
                         cartOffer.getOffer().getPrice().multiply(BigDecimal.valueOf(cartOffer.getQuantity()))
                 );            }
+
+
 
             // 4. Update final price
             newOrder.setPrice(runningTotal);

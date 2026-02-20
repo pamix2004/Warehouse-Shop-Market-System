@@ -96,8 +96,15 @@ public class PurchaseService {
         User user = userRepository.findById(userId);
         Store store = storeRepository.findByUser_Id(userId);
 
+        if(cartRepository.hasActiveBasket(userId)==0){
+            return "redirect:/offer/account?errorMessageParam=Your basket is empty";
+        }
+
         List<Cart> allCarts = cartRepository.findByStore(store);
-        System.out.println("to sie wywolalo");
+
+
+
+
         Payment payment = orderService.placeOrder(store.getId(),allCarts);
 
 

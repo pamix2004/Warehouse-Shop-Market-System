@@ -115,7 +115,7 @@ services:
       - app.stripeTestSecretKey=${STRIPE_TEST_SECRET_KEY}
       - app.stripeEndpointSecret=${STRIPE_ENDPOINT_SECRET}
       - eureka.instance.hostname=payment-service
-      - app.base-url=http://localhost:6565
+      - app.base-url=http://localhost:8085
 
     ports:
       - "8090:8090"

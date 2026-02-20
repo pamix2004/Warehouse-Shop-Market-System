@@ -26,6 +26,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.view.RedirectView;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -210,11 +211,13 @@ public class PaymentController {
 
 
     @GetMapping("/success")
-    @ResponseBody
-    public String success()
-    {
+    public String paymentSuccess(RedirectAttributes redirectAttributes) {
+        // Equivalent to setting model attributes for the redirected page
+        redirectAttributes.addFlashAttribute("success", true);
+        redirectAttributes.addFlashAttribute("message", "Payment completed successfully!");
 
-        return "success";
+        // redirect to /offer/account
+        return "redirect:/offer/account";
     }
 
     public void sendMail(String email, String subject, String body)
@@ -234,11 +237,14 @@ public class PaymentController {
         System.out.println("Email sent");
     }
 
-    @GetMapping("/cancel")
-    @ResponseBody
-    public  String cancel()
-    {
-        return "cancel";
+    @GetMapping("/fail")
+    public String paymentFail(RedirectAttributes redirectAttributes) {
+        // Equivalent to setting model attributes for the redirected page
+        redirectAttributes.addFlashAttribute("success", false);
+        redirectAttributes.addFlashAttribute("message", "Payment failed!");
+
+        // redirect to /offer/account
+        return "redirect:/offer/account";
     }
 
     public static class CheckoutRequest {
@@ -271,8 +277,8 @@ public class PaymentController {
             System.out.println("baseUrl: " + baseUrl);
             SessionCreateParams params = SessionCreateParams.builder()
                     .setMode(SessionCreateParams.Mode.PAYMENT)
-                    .setSuccessUrl(baseUrl + "/payment/success")
-                    .setCancelUrl(baseUrl + "/payment/cancel")
+                    .setSuccessUrl(baseUrl + "/offer/account?successPayment=true")
+                    .setCancelUrl(baseUrl + "/offer/account?successPayment=false")
                     .addLineItem(
                             SessionCreateParams.LineItem.builder()
                                     .setQuantity(1L)
