@@ -81,3 +81,58 @@
   background-color:#dc2626;
   color:#fff;
 }
+
+@media screen and (max-width: 992px) {
+    /* Hide the standard table header */
+    .table-responsive thead {
+        display: none;
+    }
+
+    /* Force table elements to stack vertically */
+    .table-responsive table,
+    .table-responsive tbody,
+    .table-responsive tr,
+    .table-responsive td {
+        display: block;
+        width: 100%;
+    }
+
+    .table-responsive tr {
+        margin-bottom: 20px;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        background: #fff;
+    }
+
+    .table-responsive td {
+        text-align: right;
+        padding-left: 50% !important;
+        position: relative;
+        border-bottom: 1px solid #eee;
+        min-height: 45px;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+    }
+
+    /* This adds the label to the left side of the "card" row */
+    .table-responsive td::before {
+        content: attr(data-label);
+        position: absolute;
+        left: 15px;
+        width: 45%;
+        text-align: left;
+        font-weight: 700;
+        color: #6c757d;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+    }
+
+    .table-responsive td:last-child {
+        border-bottom: 0;
+        background-color: #f8f9fa;
+        justify-content: center;
+        padding-left: 15px !important;
+    }
+}

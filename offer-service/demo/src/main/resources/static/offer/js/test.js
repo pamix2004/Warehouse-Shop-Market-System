@@ -36,49 +36,60 @@ function renderOrdersTable(ordersArray) {
     const paginatedItems = ordersArray.slice(startIndex, endIndex);
 
     // 5. Build the rows
-    paginatedItems.forEach(o => {
-        const row = tbody.insertRow();
+paginatedItems.forEach(o => {
+    const row = tbody.insertRow();
 
-        row.insertCell().textContent = o.id ?? "";
-        row.insertCell().textContent = o.storeName ?? "";
-        row.insertCell().textContent = o.orderDate ?? "";
+    // Helper to create cells with labels
+    const createCell = (text, label) => {
+        const cell = row.insertCell();
+        cell.textContent = text;
+        cell.setAttribute("data-label", label);
+        return cell;
+    };
 
-        // Status Badge
-        const statusCell = row.insertCell();
-        const badge = document.createElement("span");
-        const statusClass = (o.status ?? "default").toLowerCase().replace(/\s+/g, '-');
-        badge.className = `badge status-badge status-${statusClass}`;
-        badge.textContent = o.status ?? "";
-        statusCell.appendChild(badge);
+    createCell(o.id ?? "", "Order ID");
+    createCell(o.storeName ?? "", "Store");
+    createCell(o.orderDate ?? "", "Date");
 
-        row.insertCell().textContent = o.paymentStatus ?? "";
+    // Status Badge Cell
+    const statusCell = row.insertCell();
+    statusCell.setAttribute("data-label", "Order Status");
+    const badge = document.createElement("span");
+    const statusClass = (o.status ?? "default").toLowerCase().replace(/\s+/g, '-');
+    badge.className = `badge status-badge status-${statusClass}`;
+    badge.textContent = o.status ?? "";
+    statusCell.appendChild(badge);
 
-        const price = o.totalPrice != null ? Number(o.totalPrice).toFixed(2) : "0.00";
-        row.insertCell().textContent = `${price} PLN`;
+    createCell(o.paymentStatus ?? "", "Payment");
 
-        // Details Button
-        const detailsCell = row.insertCell();
-        const a = document.createElement("a");
-        a.className = "btn btn-sm btn-outline-primary";
-        a.href = `/offer/orders/${o.id}`;
-        a.textContent = "Details";
-        detailsCell.appendChild(a);
+    const price = o.totalPrice != null ? Number(o.totalPrice).toFixed(2) : "0.00";
+    createCell(`${price} PLN`, "Total Price");
 
-        // Status Update Form
-        const changeCell = row.insertCell();
-        changeCell.innerHTML = `
-            <form action="/offer/wholesaler/orders/status" method="post" class="d-flex gap-2">
-                <input type="hidden" name="orderId" value="${o.id}" />
-                <select name="status" class="form-select form-select-sm">
-                    <option value="Ordered" ${o.status === 'Ordered' ? 'selected' : ''}>Ordered</option>
-                    <option value="In progress" ${o.status === 'In progress' ? 'selected' : ''}>In progress</option>
-                    <option value="Shipped" ${o.status === 'Shipped' ? 'selected' : ''}>Shipped</option>
-                    <option value="Delivered" ${o.status === 'Delivered' ? 'selected' : ''}>Delivered</option>
-                </select>
-                <button type="submit" class="btn btn-sm btn-success">Update</button>
-            </form>
-        `;
-    });
+    // Details Button Cell
+    const detailsCell = row.insertCell();
+    detailsCell.setAttribute("data-label", "Details");
+    const a = document.createElement("a");
+    a.className = "btn btn-sm btn-outline-primary";
+    a.href = `/offer/orders/${o.id}`;
+    a.textContent = "Details";
+    detailsCell.appendChild(a);
+
+    // Status Update Form Cell
+    const changeCell = row.insertCell();
+    changeCell.setAttribute("data-label", "Action");
+    changeCell.innerHTML = `
+        <form action="/offer/wholesaler/orders/status" method="post" class="status-update-form">
+            <input type="hidden" name="orderId" value="${o.id}" />
+            <select name="status" class="form-select form-select-sm">
+                <option value="Ordered" ${o.status === 'Ordered' ? 'selected' : ''}>Ordered</option>
+                <option value="In progress" ${o.status === 'In progress' ? 'selected' : ''}>In progress</option>
+                <option value="Shipped" ${o.status === 'Shipped' ? 'selected' : ''}>Shipped</option>
+                <option value="Delivered" ${o.status === 'Delivered' ? 'selected' : ''}>Delivered</option>
+            </select>
+            <button type="submit" class="btn btn-sm btn-success">Update</button>
+        </form>
+    `;
+});
 
     renderPaginationControls(totalOrders);
 }
@@ -91,18 +102,33 @@ function renderPaginationControls(totalItems) {
     const totalPages = Math.ceil(totalItems / pageSize);
     if (totalPages <= 1) return;
 
+    // --- PREVIOUS BUTTON ---
     createPageItem(paginationUl, "«", currentPage > 1, () => {
         currentPage--;
         renderOrdersTable(displayedOrders);
     });
 
+    // --- SMART PAGE NUMBERS ---
+    const windowSize = 2; // How many pages to show before/after current
+
     for (let i = 1; i <= totalPages; i++) {
-        createPageItem(paginationUl, i, true, () => {
-            currentPage = i;
-            renderOrdersTable(displayedOrders);
-        }, i === currentPage);
+        // Always show first page, last page, and pages near the current page
+        if (i === 1 || i === totalPages || (i >= currentPage - windowSize && i <= currentPage + windowSize)) {
+            createPageItem(paginationUl, i, true, () => {
+                currentPage = i;
+                renderOrdersTable(displayedOrders);
+            }, i === currentPage);
+        }
+        // Add ellipsis (...) if there's a gap
+        else if (i === currentPage - windowSize - 1 || i === currentPage + windowSize + 1) {
+            const li = document.createElement("li");
+            li.className = "page-item disabled";
+            li.innerHTML = '<span class="page-link">...</span>';
+            paginationUl.appendChild(li);
+        }
     }
 
+    // --- NEXT BUTTON ---
     createPageItem(paginationUl, "»", currentPage < totalPages, () => {
         currentPage++;
         renderOrdersTable(displayedOrders);

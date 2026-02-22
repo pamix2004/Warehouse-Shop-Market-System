@@ -50,66 +50,73 @@ function renderOrdersTable(ordersArray) {
     paginatedItems.forEach(o => {
         const row = tbody.insertRow();
 
+        // Helper to add data-label for mobile CSS
+        const addCell = (text, label) => {
+            const cell = row.insertCell();
+            cell.textContent = text;
+            cell.setAttribute("data-label", label);
+            return cell;
+        };
+
         // 1. Order ID
-        row.insertCell().textContent = o.id ?? "";
+        addCell(o.id ?? "", "Order ID");
 
         // 2. Wholesaler Name
-        row.insertCell().textContent = o.wholesalerName ?? "";
+        addCell(o.wholesalerName ?? "", "Wholesaler");
 
         // 3. Date
-        row.insertCell().textContent = o.orderDate ?? "";
+        addCell(o.orderDate ?? "", "Date");
 
         // 4. Status Badge
         const statusCell = row.insertCell();
+        statusCell.setAttribute("data-label", "Order Status");
         const badge = document.createElement("span");
         const statusClass = (o.status ?? "default").toLowerCase().replace(/\s+/g, '-');
         badge.className = `badge status-badge status-${statusClass}`;
         badge.textContent = o.status ?? "";
         statusCell.appendChild(badge);
 
-        // 5. Payment Status (Clickable only if Pending)
+        // 5. Payment Status
         const paymentCell = row.insertCell();
-        const paymentBtn = document.createElement("button");
+        paymentCell.setAttribute("data-label", "Payment Status");
         const currentPaymentStatus = (o.paymentStatus ?? "").trim();
-
-        // Normalize status for comparison
         const isPending = currentPaymentStatus.toLowerCase() === "pending";
 
+        const paymentBtn = document.createElement("button");
         if (isPending) {
-            // ACTIVE STATE: Allow checkout
-            paymentBtn.className = "btn btn-link p-0 text-decoration-none";
-            paymentBtn.textContent = currentPaymentStatus;
+            paymentBtn.className = "btn btn-link p-0 text-decoration-none fw-bold";
+            paymentBtn.textContent = currentPaymentStatus + " (Pay)";
             paymentBtn.onclick = () => handleCheckout(o.id);
         } else {
-            // INACTIVE STATE: Just show text, no link/button behavior
-            paymentBtn.className = "btn p-0 text-muted text-decoration-none cursor-default";
+            paymentBtn.className = "btn p-0 text-muted text-decoration-none";
             paymentBtn.style.cursor = "default";
             paymentBtn.disabled = true;
-            paymentBtn.textContent = currentPaymentStatus || "Paid"; // Fallback text
+            paymentBtn.textContent = currentPaymentStatus || "Paid";
         }
-
         paymentCell.appendChild(paymentBtn);
 
         // 6. Price
         const price = o.totalPrice != null ? Number(o.totalPrice).toFixed(2) : "0.00";
-        row.insertCell().textContent = `${price} PLN`;
+        addCell(`${price} PLN`, "Total price");
 
         // 7. Details Button
         const detailsCell = row.insertCell();
+        detailsCell.setAttribute("data-label", "Details");
         detailsCell.className = "text-center";
         const detailsBtn = document.createElement("a");
-        detailsBtn.className = "btn btn-sm btn-outline-primary";
+        detailsBtn.className = "btn btn-sm btn-outline-primary w-100";
         detailsBtn.href = `/offer/orders/${o.id}`;
-        detailsBtn.textContent = "Details";
+        detailsBtn.textContent = "View Details";
         detailsCell.appendChild(detailsBtn);
 
-        // 8. Cancel Button (Logic: Only active if status is "Ordered")
+        // 8. Cancel Button
         const cancelCell = row.insertCell();
+        cancelCell.setAttribute("data-label", "Action");
         cancelCell.className = "text-center";
-
         const cancelForm = document.createElement("form");
         cancelForm.method = "POST";
         cancelForm.action = "/offer/orders/cancel";
+        cancelForm.className = "w-100";
 
         const hiddenInput = document.createElement("input");
         hiddenInput.type = "hidden";
@@ -120,26 +127,13 @@ function renderOrdersTable(ordersArray) {
         cancelBtn.type = "submit";
         cancelBtn.textContent = "Cancel";
 
-        // Check the status (case-insensitive to be safe)
         const currentStatus = (o.status ?? "").trim();
-
         if (currentStatus === "Ordered") {
-            // ACTIVE STATE
-            cancelBtn.className = "btn btn-sm btn-danger";
-
-            cancelForm.onsubmit = function(e) {
-                if (!confirm(`Are you sure you want to cancel order #${o.id}?`)) {
-                    e.preventDefault();
-                }
-            };
+            cancelBtn.className = "btn btn-sm btn-danger w-100";
+            cancelForm.onsubmit = (e) => { if (!confirm(`Cancel order #${o.id}?`)) e.preventDefault(); };
         } else {
-            // INACTIVE STATE
-            cancelBtn.className = "btn btn-sm btn-secondary opacity-50";
-            cancelBtn.disabled = true; // This makes it unclickable
-            cancelBtn.title = "Only 'Ordered' items can be cancelled"; // Tooltip on hover
-
-            // Prevent form submission just in case
-            cancelForm.onsubmit = (e) => e.preventDefault();
+            cancelBtn.className = "btn btn-sm btn-secondary opacity-50 w-100";
+            cancelBtn.disabled = true;
         }
 
         cancelForm.appendChild(hiddenInput);
@@ -148,6 +142,46 @@ function renderOrdersTable(ordersArray) {
     });
 
     renderPaginationControls(totalOrders);
+}
+
+function renderPaginationControls(totalItems) {
+    const paginationUl = document.getElementById("paginationControls");
+    if (!paginationUl) return;
+    paginationUl.innerHTML = "";
+
+    const totalPages = Math.ceil(totalItems / pageSize);
+    if (totalPages <= 1) return;
+
+    const windowSize = 1; // Shows current, 1 before, 1 after
+
+    // Prev
+    createPageItem(paginationUl, "«", currentPage > 1, () => {
+        currentPage--;
+        renderOrdersTable(displayedOrders);
+    });
+
+    for (let i = 1; i <= totalPages; i++) {
+        // Only show first, last, and pages near current
+        if (i === 1 || i === totalPages || (i >= currentPage - windowSize && i <= currentPage + windowSize)) {
+            createPageItem(paginationUl, i, true, () => {
+                currentPage = i;
+                renderOrdersTable(displayedOrders);
+            }, i === currentPage);
+        }
+        // Add dots
+        else if (i === currentPage - windowSize - 1 || i === currentPage + windowSize + 1) {
+            const li = document.createElement("li");
+            li.className = "page-item disabled";
+            li.innerHTML = '<span class="page-link">...</span>';
+            paginationUl.appendChild(li);
+        }
+    }
+
+    // Next
+    createPageItem(paginationUl, "»", currentPage < totalPages, () => {
+        currentPage++;
+        renderOrdersTable(displayedOrders);
+    });
 }
 
 // Funkcja filtrowania dostosowana do hurtownika
@@ -181,14 +215,40 @@ function renderPaginationControls(totalItems) {
     const paginationUl = document.getElementById("paginationControls");
     if (!paginationUl) return;
     paginationUl.innerHTML = "";
+
     const totalPages = Math.ceil(totalItems / pageSize);
     if (totalPages <= 1) return;
 
-    createPageItem(paginationUl, "«", currentPage > 1, () => { currentPage--; renderOrdersTable(displayedOrders); });
+    const windowSize = 1; // Shows current, 1 before, 1 after
+
+    // Prev
+    createPageItem(paginationUl, "«", currentPage > 1, () => {
+        currentPage--;
+        renderOrdersTable(displayedOrders);
+    });
+
     for (let i = 1; i <= totalPages; i++) {
-        createPageItem(paginationUl, i, true, () => { currentPage = i; renderOrdersTable(displayedOrders); }, i === currentPage);
+        // Only show first, last, and pages near current
+        if (i === 1 || i === totalPages || (i >= currentPage - windowSize && i <= currentPage + windowSize)) {
+            createPageItem(paginationUl, i, true, () => {
+                currentPage = i;
+                renderOrdersTable(displayedOrders);
+            }, i === currentPage);
+        }
+        // Add dots
+        else if (i === currentPage - windowSize - 1 || i === currentPage + windowSize + 1) {
+            const li = document.createElement("li");
+            li.className = "page-item disabled";
+            li.innerHTML = '<span class="page-link">...</span>';
+            paginationUl.appendChild(li);
+        }
     }
-    createPageItem(paginationUl, "»", currentPage < totalPages, () => { currentPage++; renderOrdersTable(displayedOrders); });
+
+    // Next
+    createPageItem(paginationUl, "»", currentPage < totalPages, () => {
+        currentPage++;
+        renderOrdersTable(displayedOrders);
+    });
 }
 
 function createPageItem(container, text, enabled, onClick, isActive = false) {

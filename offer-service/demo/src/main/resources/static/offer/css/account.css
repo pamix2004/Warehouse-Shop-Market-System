@@ -2,8 +2,8 @@
   max-width: 1200px;
   margin: 0 auto;
 
-  width: 100%;
-
+  width: 95%;
+    overflow-x:auto;
 
 
 }
@@ -205,4 +205,64 @@ color:white;
 .input-inline-group {
     display: flex;
     flex-direction: column;
+}
+
+@media screen and (max-width: 768px) {
+    /* Hide the table header (thead) but keep it accessible for screen readers */
+    .offers-table thead {
+        display: none;
+    }
+
+      .offers-table td[data-label="State"]::before {
+        display: none;
+        content: none;
+      }
+
+    .offers-table,
+    .offers-table tbody,
+    .offers-table tr,
+    .offers-table td {
+        display: block;
+        width: 100%;
+    }
+
+    .offers-table tr {
+        margin-bottom: 15px;
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .offers-table td {
+        text-align: right;
+        padding-left: 50%;
+        position: relative;
+        border-bottom: 1px solid #eee;
+    }
+
+    /* Create the "Label" using the data-label attribute */
+    .offers-table td::before {
+        content: attr(data-label);
+        position: absolute;
+        left: 10px;
+        width: 45%;
+        white-space: nowrap;
+        text-align: left;
+        font-weight: bold;
+        color: #666;
+    }
+
+    .offers-table td:last-child {
+        border-bottom: 0;
+        background-color: #f9fafb; /* Slight highlight for the action button area */
+        text-align: center;
+        padding-left: 12px;
+    }
+
+    /* Adjust input widths for mobile */
+    .qty-input, .form-control.cart-qty-input {
+        width: 100% !important;
+        max-width: 100px;
+        display: inline-block;
+    }
 }
