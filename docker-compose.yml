@@ -54,6 +54,8 @@ services:
       - spring.datasource.password=${WHOLESALER_STORE_DATABASE_PASSWORD}
       - spring.jpa.hibernate.ddl-auto=update
       - app.secretKey=${SECRET_KEY}
+      - app.base-url=http://pamix.online
+
     ports:
       - "8080:8080"
     networks:
@@ -115,7 +117,7 @@ services:
       - app.stripeTestSecretKey=${STRIPE_TEST_SECRET_KEY}
       - app.stripeEndpointSecret=${STRIPE_ENDPOINT_SECRET}
       - eureka.instance.hostname=payment-service
-      - app.base-url=http://localhost:8085
+      - app.base-url=http://pamix.online
 
     ports:
       - "8090:8090"

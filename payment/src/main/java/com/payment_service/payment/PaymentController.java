@@ -157,7 +157,8 @@ public class PaymentController {
             SessionExpireParams params = SessionExpireParams.builder().build();
             Session session = resource.expire(params);
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
+
+            return ResponseEntity.internalServerError().body("Expire checkout error!");
         }
 
         return ResponseEntity.ok().build();
@@ -278,7 +279,7 @@ public class PaymentController {
             SessionCreateParams params = SessionCreateParams.builder()
                     .setMode(SessionCreateParams.Mode.PAYMENT)
                     .setSuccessUrl(baseUrl + "/offer/account?successPayment=true")
-                    .setCancelUrl(baseUrl + "/offer/account?successPayment=false")
+                    .setCancelUrl(baseUrl + "/offer/account")
                     .addLineItem(
                             SessionCreateParams.LineItem.builder()
                                     .setQuantity(1L)

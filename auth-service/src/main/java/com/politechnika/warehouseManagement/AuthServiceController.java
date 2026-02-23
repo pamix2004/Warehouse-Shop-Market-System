@@ -11,6 +11,7 @@ import com.politechnika.warehouseManagement.repo.UserRepository;
 import com.politechnika.warehouseManagement.repo.WholesalerRepository;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.http.HttpHeaders;
@@ -56,6 +57,9 @@ public class AuthServiceController {
 
     @Autowired
     private DiscoveryClient discoveryClient;
+
+    @Value("${app.base-url}")
+    private String baseUrl;
 
     public String getJWTServiceUrl() {
 
@@ -216,14 +220,43 @@ public class AuthServiceController {
                 return "redirect:/auth/register?error=Account with this email is already active";
             }
             //User exists but has not been confirmed
-            else{
-                sendConfirmationMail(email,userEntity.getId());
+            else {
+                // 1. Update User Credentials and Role
+                BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(10);
+                userEntity.setPassword(encoder.encode(password));
+                userEntity.setRole(role);
+                userRepository.save(userEntity);
 
+                // 2. Handle Profile Switch and Clean Up Duplicates
+                if (role.equals("store")) {
+                    // Remove any existing Wholesaler record to prevent duplicates/orphans
+                    Wholesaler oldWholesaler = wholesalerRepository.findByUser_Id(userEntity.getId());
+                    if (oldWholesaler != null) { wholesalerRepository.delete(oldWholesaler); }
 
+                    // Update or Create Store
+                    Store store = storeRepository.findByUser_Id(userEntity.getId());
+                    if (store == null) { store = new Store(); }
+                    store.setUser(userEntity);
+                    store.setAddress(address);
+                    store.setName(name);
+                    storeRepository.save(store);
 
-                //We notify a user that mail was sent
-                return "redirect:/auth/register?mailSent=Email has been sent.";
+                } else if (role.equals("wholesaler")) {
+                    // Remove any existing Store record to prevent duplicates/orphans
+                    Store oldStore = storeRepository.findByUser_Id(userEntity.getId());
+                    if (oldStore != null) { storeRepository.delete(oldStore); }
 
+                    // Update or Create Wholesaler
+                    Wholesaler wholesaler = wholesalerRepository.findByUser_Id(userEntity.getId());
+                    if (wholesaler == null) { wholesaler = new Wholesaler(); }
+                    wholesaler.setUser(userEntity);
+                    wholesaler.setAddress(address);
+                    wholesaler.setName(name);
+                    wholesalerRepository.save(wholesaler);
+                }
+
+                sendConfirmationMail(email, userEntity.getId());
+                return "redirect:/auth/register?mailSent=Registration details updated and email has been sent.";
             }
 
         }
@@ -326,7 +359,7 @@ public class AuthServiceController {
                 id
         );
 
-        String link = "http://localhost:8085/auth/verify?token=" + token;
+        String link = baseUrl+"/auth/verify?token=" + token;
 
 // 1. Use HashMap to ensure it's treated as a JSON object
         Map<String, String> params = new HashMap<>();

@@ -276,12 +276,13 @@ public class OrderService {
 
         // Send POST request
         ResponseEntity<HashMap> response = restTemplate.postForEntity(paymentServiceURL,requestEntity,HashMap.class);
+
     }
 
     @Transactional
     public String cancelOrder(int userId, int orderId) {
-
         System.out.println("Probuje anulowac");
+
         User user = userRepository.findById(userId);
         Store store = storeRepository.findByUser_Id(user.getId());
 
@@ -293,37 +294,42 @@ public class OrderService {
 
         Payment payment = paymentOrder.getPayment();
 
+        // Get all orders associated with the same payment
+        List<PaymentOrder> associatedOrders = paymentOrderRepository.findByPayment(payment);
+        System.out.println("associatedOrders: " + associatedOrders);
 
-        //You can only cancel your own order
-        if (order.getStore().getId() != store.getId()) {
-            return "redirect:/offer/orders";
+        for (PaymentOrder po : associatedOrders) {
+            Order o = po.getOrder();
+
+            // Only allow cancelling orders from this user's store
+            if (o.getStore().getId() != store.getId()) {
+                continue; // skip orders that belong to another store
+            }
+
+            // Only cancel orders that are still in 'Ordered' status
+            if (!"Ordered".equals(o.getStatus())) {
+                System.out.println("Skipping order " + o.getOrderId() + " because it's already " + o.getStatus());
+                continue;
+            }
+
+            // Cancel payment if not already succeeded and cancelec
+            if (payment.getStatus() != PaymentStatus.succeeded && payment.getStatus() != PaymentStatus.canceled) {
+                callPaymentServiceToExpireCheckout(payment.getStripeSessionId());
+                payment.setStatus(PaymentStatus.canceled);
+            }
+
+            // Add products back to available pool
+            List<OrderOffer> listOfOrderOffers = orderOfferRepository.findByOrder(o);
+            for (OrderOffer orderOffer : listOfOrderOffers) {
+                Offer currentOffer = orderOffer.getOffer();
+                currentOffer.setAvailable_quantity(currentOffer.getAvailable_quantity() + orderOffer.getQuantity());
+                offerRepository.save(currentOffer);
+            }
+
+            o.setStatus("Cancelled");
+            orderRepository.save(o);
+            System.out.println("Cancelled order: " + o.getOrderId());
         }
-
-        // można anulować tylko zamówienie jeszcze nierozpoczęte
-        if (!"Ordered".equals(order.getStatus())) {
-            System.out.println("tutaj jest blad bo dalem UPPERCASE!");
-            return "redirect:/offer/orders/" + orderId;
-        }
-
-        //If it has not yet been paid, make sure to close the checkout and set is as cancelled
-        if(payment.getStatus()!=PaymentStatus.succeeded){
-            callPaymentServiceToExpireCheckout(payment.getStripeSessionId());
-            payment.setStatus(PaymentStatus.canceled);
-        }
-
-        //You should add products to available pool when u cancel
-        List<OrderOffer> listOfOrderOffers =  orderOfferRepository.findByOrder(order);
-        Offer currentOffer;
-        for(OrderOffer orderOffer: listOfOrderOffers) {
-            currentOffer = orderOffer.getOffer();
-            currentOffer.setAvailable_quantity(currentOffer.getAvailable_quantity()+orderOffer.getQuantity());
-            offerRepository.save(currentOffer);
-        }
-
-        order.setStatus("Cancelled");
-        orderRepository.save(order);
-        System.out.println("Chyba anulowało");
-
 
         return "redirect:/offer/orders";
     }

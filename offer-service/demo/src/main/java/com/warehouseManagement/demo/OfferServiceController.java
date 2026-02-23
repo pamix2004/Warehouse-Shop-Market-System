@@ -201,6 +201,9 @@ public class OfferServiceController {
     }
 
 
+    /**
+     * Function used for adding new offers( by wholesalers)
+     */
     @PostMapping("/account/add")
     @ResponseBody // Return JSON instead of a view
     public ResponseEntity<?> addOffer(@RequestHeader("X-User-Id") int userId, @ModelAttribute("offerForm") OfferFormDTO form) {
@@ -231,6 +234,7 @@ public class OfferServiceController {
             offer.setPrice(form.getPrice());
             offer.setAvailable_quantity(form.getAvailable_quantity());
             offer.setMinimal_quantity(form.getMinimal_quantity());
+            offer.setState(OfferState.active);
             offerRepository.save(offer);
 
             return ResponseEntity.ok("Offer added successfully");
